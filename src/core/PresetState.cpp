@@ -1,5 +1,6 @@
 #include "core/PresetState.h"
 
+#include <charconv>
 #include <cmath>
 #include <cstdlib>
 #include <optional>
@@ -32,6 +33,19 @@ std::optional<double> parseFiniteNumber(const juce::String& text)
         return std::nullopt;
 
     return value;
+}
+
+// A schema version is a whole number ≥ 1 written as plain digits; "1.5", "1e0" or "abc" is not one.
+std::optional<int> parseSchemaVersion(const juce::String& text)
+{
+    const auto digits = text.trim().toStdString();
+    int version = 0;
+    const auto [end, error] = std::from_chars(digits.data(), digits.data() + digits.size(), version);
+
+    if (digits.empty() || error != std::errc{} || end != digits.data() + digits.size() || version < 1)
+        return std::nullopt;
+
+    return version;
 }
 
 const juce::XmlElement* findParameter(const juce::XmlElement* parameters, const juce::String& id)
@@ -79,11 +93,11 @@ LoadResult fromXml(const juce::XmlElement& source, juce::AudioProcessor& process
     if (!source.hasTagName(rootTag))
         return {};
 
-    const auto version = parseFiniteNumber(source.getStringAttribute(schemaVersionAttribute));
-    if (!version.has_value() || *version < 1.0 || *version != std::floor(*version))
+    const auto version = parseSchemaVersion(source.getStringAttribute(schemaVersionAttribute));
+    if (!version.has_value())
         return {};
 
-    const int schemaVersion = static_cast<int>(*version);
+    const int schemaVersion = *version;
 
     // A newer schema is still read: its known parameters load and anything it added is ignored.
     juce::XmlElement xml{source};

@@ -249,6 +249,8 @@ TEST_CASE("Foreign, unversioned or corrupt state leaves the current settings unt
         R"(<NinetiesMultiFxState><Parameters><Parameter id="inputTrim" value="-3"/></Parameters></NinetiesMultiFxState>)");
     loadXml(processor, R"(<NinetiesMultiFxState schemaVersion="1.5"/>)");
     loadXml(processor, R"(<NinetiesMultiFxState schemaVersion="0"/>)");
+    loadXml(processor, R"(<NinetiesMultiFxState schemaVersion="1e0"/>)");
+    loadXml(processor, R"(<NinetiesMultiFxState schemaVersion="-1"/>)");
 
     const char garbage[] = "definitely not plugin state";
     processor.setStateInformation(garbage, static_cast<int>(sizeof(garbage)));

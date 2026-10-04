@@ -24,6 +24,10 @@ add_library(a5_engine STATIC
 target_include_directories(a5_engine PUBLIC src)
 target_compile_features(a5_engine PUBLIC cxx_std_20)
 
+# Linked into the plugins' shared libraries; Linux does not build static libraries this way by
+# default, and the VST3 link fails without it.
+set_target_properties(a5_engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 if(MSVC)
     target_compile_options(a5_engine PRIVATE /W4)
 else()
