@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.25)
 # Must be set before project(): JUCE bakes the deployment target into the plugin bundles.
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
 
-project(NinetiesMultiFx VERSION 0.0.1 LANGUAGES C CXX)
+project(FiveAMultiFx VERSION 0.0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -56,19 +56,17 @@ else()
 endif()
 
 # --- Plugin -------------------------------------------------------------------
-# The product name is a working title: the plan forbids reusing the original product's name or trade
-# dress until naming has been reviewed. The manufacturer code is Catastrophic Audio's, shared with
-# its other plugins; PLUGIN_CODE must be unique among them. Changing either after release breaks
-# saved host sessions.
+# The manufacturer code is Catastrophic Audio's, shared with its other plugins; PLUGIN_CODE must be
+# unique among them. Changing either, or the bundle ID, after release breaks saved host sessions.
 set(A5_PLUGIN_FORMATS VST3 Standalone)
 if(APPLE)
     list(APPEND A5_PLUGIN_FORMATS AU)
 endif()
 
 juce_add_plugin(A5Plugin
-    PRODUCT_NAME                "Nineties Multi-FX"
+    PRODUCT_NAME                "Five-A MultiFX Processor"
     COMPANY_NAME                "Catastrophic Audio"
-    BUNDLE_ID                   "com.catastrophicaudio.ninetiesmultifx"
+    BUNDLE_ID                   "com.catastrophicaudio.fivea"
     PLUGIN_MANUFACTURER_CODE    Ctcd
     PLUGIN_CODE                 Nmf1
     FORMATS                     ${A5_PLUGIN_FORMATS}

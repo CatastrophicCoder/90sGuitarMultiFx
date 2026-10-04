@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Nineties Multi-FX (working title) by Catastrophic Audio: a guitar multi-effect plugin (AU, VST3,
+Five-A MultiFX Processor by Catastrophic Audio: a guitar multi-effect plugin (AU, VST3,
 Standalone) whose architecture and workflow are inspired by the red Korg A5 Guitar performance
 signal processor. Built with JUCE and C++20 in CLion. Public repo, licensed AGPLv3.
 
@@ -68,9 +68,9 @@ cmake --build build-release
 killall -9 AudioComponentRegistrar 2>/dev/null   # if a fresh build does not show up in auval -a
 auval -v aufx Nmf1 Ctcd
 /Applications/pluginval.app/Contents/MacOS/pluginval --strictness-level 10 \
-    --validate "build-release/A5Plugin_artefacts/Release/VST3/Nineties Multi-FX.vst3"
+    --validate "build-release/A5Plugin_artefacts/Release/VST3/Five-A MultiFX Processor.vst3"
 /Applications/pluginval.app/Contents/MacOS/pluginval --strictness-level 10 \
-    --validate "$HOME/Library/Audio/Plug-Ins/Components/Nineties Multi-FX.component"
+    --validate "$HOME/Library/Audio/Plug-Ins/Components/Five-A MultiFX Processor.component"
 
 # formatting, as CI checks it (clang-format 18.1.8)
 clang-format -i $(git ls-files 'src/*.h' 'src/*.cpp' 'tests/*.h' 'tests/*.cpp')
@@ -80,10 +80,11 @@ Run `ctest` after any DSP change and the validators after any change to the proc
 cover different things: the validators catch threading and state bugs a DAW hides; `ctest` catches
 wrong DSP, which the validators never look at.
 
-- Plugin identity: product `Nineties Multi-FX`, company `Catastrophic Audio`, CMake target
+- Plugin identity: product `Five-A MultiFX Processor`, company `Catastrophic Audio`, CMake target
   `A5Plugin`, manufacturer code `Ctcd`, plugin code `Nmf1`, bundle ID
-  `com.catastrophicaudio.ninetiesmultifx`. **Do not change the codes**: hosts use them to recall
-  saved sessions. The state root tag `NinetiesMultiFxState` also stays, so older sessions load.
+  `com.catastrophicaudio.fivea`. **Do not change the codes or the bundle
+  ID** once released: hosts use them to recall saved sessions. The state root tag `FiveAState`
+  also stays, so older sessions load.
 - `A5_COPY_PLUGIN` is on for Release and off otherwise: Debug and Release install to the same
   place, and whichever built last would be what Logic loads. `A5_BUILD_TESTS` (on) builds the tests.
 - JUCE 9.0.2 and Catch2 v3.9.1 are submodules in `external/`, pinned to release tags (same
@@ -168,8 +169,6 @@ audio thread and is swapped in atomically.
 
 Record each decision in `docs/PROGRESS.md` once I make it, then move it out of this list.
 
-- Product name: "Nineties Multi-FX" is a working title. The plugin codes do not depend on it, but
-  the bundle ID and installed file names do.
 - Naming the original unit ("Korg A5") in the README and docs. The plan does so, as a statement of
   inspiration; the eq project avoids other companies' names entirely.
 - Primary sources: which documents (owner's manual, service manual) back the plan's CONFIRMED

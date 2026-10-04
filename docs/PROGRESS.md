@@ -22,14 +22,16 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 `docs/architecture.md`, and hardware-related ones in `docs/evidence-register.md`.
 
 - 2026-10-04: Company **Catastrophic Audio**; manufacturer code `Ctcd`, shared with the other
-  plugins; bundle ID `com.catastrophicaudio.ninetiesmultifx`; plugin code `Nmf1`. Do not change
-  the codes: hosts use them to recall saved sessions.
+  plugins; plugin code `Nmf1`. Do not change the codes: hosts use them to recall saved sessions.
 - 2026-10-04: Public GitHub repository `CatastrophicCoder/90sGuitarMultiFx`, default branch `main`.
 - 2026-10-04: Development practice follows the other Catastrophic Audio projects (ampsim, eq):
   AGPLv3 licence; JUCE and Catch2 as pinned submodules in `external/` (same commits as ampsim);
   only Release builds install into the plugin folders; static MSVC runtime on Windows; auval and
   pluginval locally and in CI; `CLAUDE.md`; this file; `M<n>:` commit messages.
-- Product name: "Nineties Multi-FX" is a working title (open decision, see `CLAUDE.md`).
+- 2026-10-05: Product name **Five-A MultiFX Processor**, replacing the working title "Nineties
+  Multi-FX". Every identifier follows it: bundle ID `com.catastrophicaudio.fivea`, saved-state
+  tag `FiveAState`, CMake project `FiveAMultiFx`. Renamed before any release, so no saved session
+  or preset uses the old ones. Plugin codes unchanged. The GitHub repository keeps its name.
 
 ## Session log
 
@@ -46,3 +48,7 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   position-independent. Both fixed.
 - Aligned with ampsim/eq practice (see Decisions). auval and pluginval (strictness 10, VST3 and
   AU) pass locally.
+
+### 2026-10-05
+
+- Product renamed to Five-A MultiFX Processor (see Decisions), including bundle ID and state tag.

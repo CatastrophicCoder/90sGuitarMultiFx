@@ -21,7 +21,7 @@ MainPanel::MainPanel(juce::AudioProcessorValueTreeState& state)
     , outputControl(state, ParameterIds::outputLevel, "Output")
     , bypassAttachment(state, ParameterIds::globalBypass, bypassButton)
 {
-    titleLabel.setText("Nineties Multi-FX  (development build, no effects yet)", juce::dontSendNotification);
+    titleLabel.setText("Five-A MultiFX Processor  (development build, no effects yet)", juce::dontSendNotification);
     titleLabel.setFont(juce::FontOptions{20.0f, juce::Font::bold});
     addAndMakeVisible(titleLabel);
     addAndMakeVisible(bypassButton);

@@ -62,12 +62,12 @@ release that adds them.
 ## State format (schema version 1)
 
 ```xml
-<NinetiesMultiFxState schemaVersion="1" model="functional-placeholder">
+<FiveAState schemaVersion="1" model="functional-placeholder">
   <Parameters>
     <Parameter id="inputTrim" value="0"/>
     ...
   </Parameters>
-</NinetiesMultiFxState>
+</FiveAState>
 ```
 
 Stored inside JUCE's binary XML wrapper (`copyXmlToBinary`). Values are in plain units, written in
@@ -97,10 +97,11 @@ attributes in Milestone 2 under a schema-version bump only if the change is not 
   a DAW loads.
 - Windows links the C++ runtime statically, so a host does not need `VCRUNTIME140.dll` beside the
   plugin to load it.
-- Company: Catastrophic Audio (bundle ID `com.catastrophicaudio.ninetiesmultifx`, manufacturer
-  code `Ctcd`, shared with its other plugins). Plugin code `Nmf1`. The product name
-  "Nineties Multi-FX" is a working title chosen to avoid the original's name and trade dress
-  (plan §17.2). Changing the manufacturer or plugin code after release breaks saved sessions.
+- Company: Catastrophic Audio (bundle ID `com.catastrophicaudio.fivea`, manufacturer
+  code `Ctcd`, shared with its other plugins). Plugin code `Nmf1`. Product name
+  "Five-A MultiFX Processor" (owner's decision 2026-10-05; it avoids the original's literal name
+  and uses none of its trade dress, plan §17.2). Changing the manufacturer or plugin code, or the
+  bundle ID, after release breaks saved sessions.
 
 ## Differences from the plan's file layout (plan §5)
 

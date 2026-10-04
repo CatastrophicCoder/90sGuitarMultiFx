@@ -5,7 +5,7 @@
 // Versioned plugin state. The format is ours rather than AudioProcessorValueTreeState's copyState(),
 // so it can carry a schema version and survive parameter-set changes. Layout:
 //
-//   <NinetiesMultiFxState schemaVersion="1" model="functional-placeholder">
+//   <FiveAState schemaVersion="1" model="functional-placeholder">
 //     <Parameters>
 //       <Parameter id="inputTrim" value="0"/>     plain units (dB, 0/1), in layout order
 //       ...
@@ -18,7 +18,7 @@ namespace a5::state
 {
 
 inline constexpr int currentSchemaVersion = 1;
-inline constexpr const char* rootTag = "NinetiesMultiFxState";
+inline constexpr const char* rootTag = "FiveAState";
 inline constexpr const char* modelIdentifier = "functional-placeholder";
 
 struct LoadResult

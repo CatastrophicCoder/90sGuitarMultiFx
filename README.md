@@ -1,4 +1,4 @@
-# Nineties Multi-FX (working title)
+# Five-A MultiFX Processor
 
 A guitar multi-effect plugin whose architecture and workflow are inspired by the red Korg A5
 Guitar performance signal processor of the early 1990s. It is an independent project, not
@@ -36,9 +36,9 @@ Built products land in `build/A5Plugin_artefacts/<config>/`:
 
 | Format | Path |
 |--------|------|
-| Standalone | `Standalone/Nineties Multi-FX.app` (macOS), `.exe` (Windows), binary (Linux) |
-| VST3 | `VST3/Nineties Multi-FX.vst3` |
-| AU (macOS) | `AU/Nineties Multi-FX.component` |
+| Standalone | `Standalone/Five-A MultiFX Processor.app` (macOS), `.exe` (Windows), binary (Linux) |
+| VST3 | `VST3/Five-A MultiFX Processor.vst3` |
+| AU (macOS) | `AU/Five-A MultiFX Processor.component` |
 
 A Release build also installs the AU and VST3 into your user plugin folders
 (`~/Library/Audio/Plug-Ins` on macOS); a Debug build does not. Override with
@@ -49,7 +49,7 @@ A Release build also installs the AU and VST3 into your user plugin folders
 ```sh
 auval -v aufx Nmf1 Ctcd     # the installed AU, i.e. the last Release build
 /Applications/pluginval.app/Contents/MacOS/pluginval --strictness-level 10 \
-    --validate "build/A5Plugin_artefacts/Release/VST3/Nineties Multi-FX.vst3"
+    --validate "build/A5Plugin_artefacts/Release/VST3/Five-A MultiFX Processor.vst3"
 ```
 
 ### Formatting

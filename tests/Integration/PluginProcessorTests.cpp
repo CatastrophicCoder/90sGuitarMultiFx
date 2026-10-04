@@ -203,7 +203,7 @@ TEST_CASE("Loading ignores unknown fields, defaults missing ones and clamps out-
     setPlainValue(processor, ParameterIds::modulationEnabled, 1.0f);
 
     loadXml(processor, R"(
-        <NinetiesMultiFxState schemaVersion="1" model="functional-placeholder" futureAttribute="x">
+        <FiveAState schemaVersion="1" model="functional-placeholder" futureAttribute="x">
           <Parameters>
             <Parameter id="inputTrim" value="99"/>
             <Parameter id="driveEnabled" value="1"/>
@@ -211,7 +211,7 @@ TEST_CASE("Loading ignores unknown fields, defaults missing ones and clamps out-
             <Parameter id="someFutureParameter" value="5"/>
           </Parameters>
           <SomethingNew/>
-        </NinetiesMultiFxState>)");
+        </FiveAState>)");
 
     CHECK(processor.getLastLoadedSchemaVersion() == 1);
     CHECK(plainValue(processor, ParameterIds::inputTrim) == 24.0f);
@@ -227,9 +227,9 @@ TEST_CASE("A newer schema version still loads the parameters this build knows")
     PluginProcessor processor;
 
     loadXml(processor, R"(
-        <NinetiesMultiFxState schemaVersion="7">
+        <FiveAState schemaVersion="7">
           <Parameters><Parameter id="outputLevel" value="-4"/></Parameters>
-        </NinetiesMultiFxState>)");
+        </FiveAState>)");
 
     CHECK(processor.getLastLoadedSchemaVersion() == 7);
     CHECK_THAT(plainValue(processor, ParameterIds::outputLevel), Catch::Matchers::WithinAbs(-4.0f, 1.0e-4f));
@@ -244,13 +244,11 @@ TEST_CASE("Foreign, unversioned or corrupt state leaves the current settings unt
     loadXml(
         processor,
         R"(<SomeOtherPlugin schemaVersion="1"><Parameters><Parameter id="inputTrim" value="-3"/></Parameters></SomeOtherPlugin>)");
-    loadXml(
-        processor,
-        R"(<NinetiesMultiFxState><Parameters><Parameter id="inputTrim" value="-3"/></Parameters></NinetiesMultiFxState>)");
-    loadXml(processor, R"(<NinetiesMultiFxState schemaVersion="1.5"/>)");
-    loadXml(processor, R"(<NinetiesMultiFxState schemaVersion="0"/>)");
-    loadXml(processor, R"(<NinetiesMultiFxState schemaVersion="1e0"/>)");
-    loadXml(processor, R"(<NinetiesMultiFxState schemaVersion="-1"/>)");
+    loadXml(processor, R"(<FiveAState><Parameters><Parameter id="inputTrim" value="-3"/></Parameters></FiveAState>)");
+    loadXml(processor, R"(<FiveAState schemaVersion="1.5"/>)");
+    loadXml(processor, R"(<FiveAState schemaVersion="0"/>)");
+    loadXml(processor, R"(<FiveAState schemaVersion="1e0"/>)");
+    loadXml(processor, R"(<FiveAState schemaVersion="-1"/>)");
 
     const char garbage[] = "definitely not plugin state";
     processor.setStateInformation(garbage, static_cast<int>(sizeof(garbage)));
