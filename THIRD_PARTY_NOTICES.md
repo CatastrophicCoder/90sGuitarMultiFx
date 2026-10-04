@@ -3,14 +3,14 @@
 | Component | Version | Used in | Licence | Source |
 |-----------|---------|---------|---------|--------|
 | JUCE | 9.0.2 | Plugin and standalone (distributed) | Dual: AGPLv3 or the commercial JUCE 9 licence | https://github.com/juce-framework/JUCE |
-| Catch2 | 3.8.1 | Tests only (not distributed) | Boost Software License 1.0 | https://github.com/catchorg/Catch2 |
+| Catch2 | 3.9.1 | Tests only (not distributed) | Boost Software License 1.0 | https://github.com/catchorg/Catch2 |
 
-Both are downloaded at configure time (`cmake/Dependencies.cmake`); neither is stored in this
-repository.
+Both are git submodules in `external/`, pinned to their release tags. Their code is not copied
+into this repository's history.
 
-**JUCE licensing note.** Any binary built from this project links JUCE. Distributing it requires
-either complying with the AGPLv3 (including releasing this project's source under compatible
-terms) or holding a commercial JUCE licence. The project licence has not been chosen yet.
+**JUCE licensing note.** Any binary built from this project links JUCE, which this project uses
+under the AGPLv3. The project itself is licensed AGPLv3 (`LICENSE`), so its source is available
+under the same terms as any binary built from it.
 
 This project contains no firmware, ROM data, factory-preset data, logos, panel artwork or product
 photography from the original hardware.

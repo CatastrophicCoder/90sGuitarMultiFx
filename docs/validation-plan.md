@@ -28,7 +28,8 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Gain accuracy and smoothing | `Gain settles at the requested level after the ramp`; `LinearSmoother` tests | Passing |
 | Bypass | `Global bypass returns to exact pass-through once its ramp ends`; bypass parameter exposed to hosts | Passing |
 | Editor | `The editor opens and closes` | Passing |
-| Builds on Windows, macOS, Linux | `.github/workflows/ci.yml` | Written; not yet run (no remote) |
+| Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Run 1: macOS and Windows passed; Linux failed (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca`, verified in an Ubuntu 24.04 container |
+| Plugin validation | `auval -v aufx Nmf1 Ctcd`; pluginval strictness 10 on the VST3 and the AU | Passing locally (macOS); in CI for macOS (AU and VST3) and Windows (VST3) |
 | Standalone passes audio | Covered at the `processBlock` level above; the standalone application itself has not been run with an audio device | Manual check outstanding |
 
 ## Not yet covered (planned)
@@ -42,6 +43,5 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Sample-rate changes during a session, offline vs real-time consistency | §19.2 | 1–3 |
 | Golden renders with tolerances | §19.3 | 1 |
 | Performance: per-block time, peak time, denormals | §19.4 | 1 |
-| Plugin format validation (pluginval, auval) | §21 M6 | add to CI when blocks exist |
 | Static analysis in CI | §20 | not yet configured |
 | Fuzzing of state parsing | §21 M6 | 6 |

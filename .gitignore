@@ -1,14 +1,24 @@
-# Build trees (CMake, CLion)
+# Build output
 /build*/
 /cmake-build-*/
 /out/
 
-# IDE state
+# IDE and OS files
 /.idea/
 /.vscode/
 .DS_Store
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Downloaded or locally built release packages
+*.pkg
+*.dmg
 
 # Measurement captures stay outside the repository unless redistribution rights are clear (plan §18).
 /captures/
 *.wav
 !tests/TestSignals/**/*.wav
+
+# Local, machine-specific session notes
+NOTES.local.md

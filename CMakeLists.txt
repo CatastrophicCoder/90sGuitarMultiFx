@@ -11,9 +11,30 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(A5_BUILD_TESTS "Build the unit and integration tests" ON)
-option(A5_COPY_PLUGIN "Copy the built plugins into the user's plugin folders" OFF)
 
-include(cmake/Dependencies.cmake)
+# Only a Release build installs itself into ~/Library/Audio/Plug-Ins. Debug and Release install to
+# the same place, so with both on, whichever built last is what a DAW loads, and a Debug plugin
+# there looks like a performance problem rather than a misconfiguration. Debug plugins are still
+# built, in build/A5Plugin_artefacts/Debug, for pluginval and for loading by hand.
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(a5_copy_default ON)
+else()
+    set(a5_copy_default OFF)
+endif()
+option(A5_COPY_PLUGIN "Install the built AU and VST3 into the user's plugin folders" ${a5_copy_default})
+
+# Windows: link the C++ runtime statically, so the plugin does not depend on VCRUNTIME140.dll being
+# installed beside it. A host that cannot find that DLL fails to load the plugin with no useful
+# message. A variable rather than a per-target property so every target agrees, Catch2 included;
+# mixing runtimes does not link.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+# JUCE 9.0.2 and Catch2 v3.9.1 are git submodules pinned to their release tags.
+# Clone with --recurse-submodules, or run `git submodule update --init` after cloning.
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/JUCE/CMakeLists.txt)
+    message(FATAL_ERROR "external/JUCE is empty. Run: git submodule update --init")
+endif()
+add_subdirectory(external/JUCE)
 
 # --- Engine -------------------------------------------------------------------
 # Pure C++ with no JUCE dependency, so the signal chain can be tested and later wrapped for other
@@ -56,7 +77,7 @@ juce_add_plugin(A5Plugin
     NEEDS_MIDI_OUTPUT           FALSE
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
-    COPY_PLUGIN_AFTER_BUILD     ${A5_COPY_PLUGIN}
+    COPY_PLUGIN_AFTER_BUILD     ${A5_COPY_PLUGIN}   # Release only by default; see above
     AU_MAIN_TYPE                kAudioUnitType_Effect
     VST3_CATEGORIES             Fx Distortion)
 
@@ -86,5 +107,7 @@ target_link_libraries(A5Plugin
 # --- Tests --------------------------------------------------------------------
 if(A5_BUILD_TESTS)
     enable_testing()
+    add_subdirectory(external/Catch2)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external/Catch2/extras)
     add_subdirectory(tests)
 endif()

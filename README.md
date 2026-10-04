@@ -13,10 +13,18 @@ for the roadmap and `docs/evidence-register.md` for what is known versus assumed
 
 - CMake 3.25 or newer, and Ninja (recommended)
 - A C++20 compiler: Xcode 15+ / Apple Clang, Visual Studio 2022, or GCC 11+ / Clang 15+
-- Internet access on the first configure (JUCE and Catch2 are downloaded and checksum-verified)
-- Linux only: the JUCE system packages listed in `.github/workflows/ci.yml`
+- Linux only: the JUCE system packages listed in `.github/workflows/build.yml`
 
 ## Build and test
+
+JUCE 9.0.2 and Catch2 v3.9.1 are git submodules in `external/`, pinned to their release tags.
+Clone with them:
+
+```sh
+git clone --recurse-submodules https://github.com/CatastrophicCoder/90sGuitarMultiFx.git
+# or, in an existing clone:
+git submodule update --init
+```
 
 ```sh
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -32,13 +40,16 @@ Built products land in `build/A5Plugin_artefacts/<config>/`:
 | VST3 | `VST3/Nineties Multi-FX.vst3` |
 | AU (macOS) | `AU/Nineties Multi-FX.component` |
 
-To have the build copy the plugins into your user plugin folders, configure with
-`-DA5_COPY_PLUGIN=ON`. To build without tests, `-DA5_BUILD_TESTS=OFF`.
+A Release build also installs the AU and VST3 into your user plugin folders
+(`~/Library/Audio/Plug-Ins` on macOS); a Debug build does not. Override with
+`-DA5_COPY_PLUGIN=ON` or `OFF`. To build without tests, `-DA5_BUILD_TESTS=OFF`.
 
-To use a local JUCE checkout instead of downloading:
+### Validating the plugin (macOS)
 
 ```sh
-cmake -B build -G Ninja -DFETCHCONTENT_SOURCE_DIR_JUCE=/path/to/JUCE
+auval -v aufx Nmf1 Ctcd     # the installed AU, i.e. the last Release build
+/Applications/pluginval.app/Contents/MacOS/pluginval --strictness-level 10 \
+    --validate "build/A5Plugin_artefacts/Release/VST3/Nineties Multi-FX.vst3"
 ```
 
 ### Formatting
@@ -54,6 +65,7 @@ clang-format -i $(git ls-files 'src/*.h' 'src/*.cpp' 'tests/*.h' 'tests/*.cpp')
 
 | Path | Contents |
 |------|----------|
+| `external` | JUCE and Catch2 submodules, pinned to release tags |
 | `src/core` | Engine façade (`A5Processor`, pure C++), parameter IDs, parameter layout and state (JUCE) |
 | `src/dsp` | DSP building blocks (only gain smoothing so far) |
 | `src/plugin` | JUCE `AudioProcessor` and editor |
@@ -64,5 +76,5 @@ clang-format -i $(git ls-files 'src/*.h' 'src/*.cpp' 'tests/*.h' 'tests/*.cpp')
 
 ## Licence
 
-Not yet chosen. JUCE 9 is available under AGPLv3 or a commercial licence, which constrains the
-choice; see `THIRD_PARTY_NOTICES.md`.
+GNU Affero General Public License v3.0; see `LICENSE`. Third-party components and their licences
+are listed in `THIRD_PARTY_NOTICES.md`.

@@ -1,0 +1,148 @@
+name: build
+
+# Every push to main and every pull request, and a button in the Actions tab.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push supersedes an in-flight run of the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: Formatting
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to the version .clang-format was written against; newer releases reflow differently.
+      - name: Install clang-format
+        run: pipx install clang-format==18.1.8
+
+      - name: Check formatting
+        run: clang-format --dry-run --Werror $(git ls-files 'src/*.h' 'src/*.cpp' 'tests/*.h' 'tests/*.cpp')
+
+  build:
+    name: ${{ matrix.name }} (${{ matrix.config }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # macos-latest and windows-latest rather than pinned images: GitHub retires old images,
+        # and a retired label fails before it builds anything. Ubuntu stays pinned because the
+        # package list below is per release.
+        include:
+          - { name: macOS, os: macos-latest, config: Debug }
+          - { name: macOS, os: macos-latest, config: Release }
+          - { name: Windows, os: windows-latest, config: Debug }
+          - { name: Windows, os: windows-latest, config: Release }
+          - { name: Linux, os: ubuntu-24.04, config: Debug }
+          - { name: Linux, os: ubuntu-24.04, config: Release }
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # JUCE and Catch2 are submodules. Shallow, because no history is needed to build a
+          # pinned tag.
+          submodules: recursive
+          fetch-depth: 1
+
+      # JUCE 9's Linux dependencies, from its docs/Linux Dependencies.md. Left out because
+      # CMakeLists.txt or the default module settings turn the feature off: WebKitGTK
+      # (JUCE_WEB_BROWSER=0), libcurl (JUCE_USE_CURL=0), ladspa-sdk (no plugin hosting) and GLU
+      # (juce_opengl is not used).
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libasound2-dev libjack-jackd2-dev libfreetype-dev \
+            libfontconfig1-dev libx11-dev libxcomposite-dev libxcursor-dev libxext-dev \
+            libxinerama-dev libxrandr-dev libxrender-dev libxi-dev libgl1-mesa-dev xvfb
+
+      - name: Install Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      # Puts MSVC on the PATH so Ninja can drive it, keeping one single-config build everywhere.
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+        with:
+          arch: x64
+
+      # A5_COPY_PLUGIN is on by default for Release. Left on for macOS, where it puts the AU where
+      # auval finds it; off on Windows, where JUCE's default VST3 destination is under Program
+      # Files and a failed copy would end the build before it says anything about the code.
+      - name: Configure
+        shell: bash
+        run: |
+          copy_flag=""
+          if [ "$RUNNER_OS" = "Windows" ]; then copy_flag="-DA5_COPY_PLUGIN=OFF"; fi
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} $copy_flag
+
+      - name: Build
+        run: cmake --build build
+
+      # The editor test creates components, which on Linux needs an X display.
+      - name: Test (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ctest --test-dir build --output-on-failure --output-junit test-results.xml
+
+      - name: Test
+        if: runner.os != 'Linux'
+        run: ctest --test-dir build --output-on-failure --output-junit test-results.xml
+
+      - name: Keep test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.name }}-${{ matrix.config }}
+          path: build/test-results.xml
+          if-no-files-found: warn
+
+      # The validators catch threading and state bugs a DAW hides; ctest catches wrong DSP, which
+      # the validators never look at. Release only: it is what a host would load.
+      - name: Validate the Audio Unit
+        if: runner.os == 'macOS' && matrix.config == 'Release'
+        run: |
+          killall -9 AudioComponentRegistrar 2>/dev/null || true
+          auval -v aufx Nmf1 Ctcd
+
+      - name: Install pluginval (macOS)
+        if: runner.os == 'macOS' && matrix.config == 'Release'
+        run: |
+          curl -fsSL -o pluginval.zip \
+            https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_macOS.zip
+          unzip -q pluginval.zip
+
+      - name: Install pluginval (Windows)
+        if: runner.os == 'Windows' && matrix.config == 'Release'
+        run: |
+          Invoke-WebRequest -Uri https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Windows.zip -OutFile pluginval.zip
+          Expand-Archive pluginval.zip -DestinationPath pluginval
+
+      # bash on Windows too: pluginval.exe is a GUI-subsystem program, and PowerShell does not wait
+      # for those, so a PowerShell step can pass before the validation has finished.
+      - name: Validate the VST3
+        if: runner.os != 'Linux' && matrix.config == 'Release'
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            validator=./pluginval.app/Contents/MacOS/pluginval
+          else
+            validator=./pluginval/pluginval.exe
+          fi
+          "$validator" --strictness-level 10 \
+            --validate "build/A5Plugin_artefacts/Release/VST3/Nineties Multi-FX.vst3"
+
+      # Unsigned development builds; no signing or notarisation secrets at this stage (plan §20).
+      - name: Keep the built plugins and standalone
+        if: matrix.config == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NinetiesMultiFx-${{ matrix.name }}
+          path: build/A5Plugin_artefacts/Release
+          if-no-files-found: error

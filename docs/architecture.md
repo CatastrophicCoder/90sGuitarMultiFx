@@ -89,10 +89,14 @@ attributes in Milestone 2 under a schema-version bump only if the change is not 
 ## Build and dependencies
 
 - CMake ≥ 3.25, C++20, Ninja recommended.
-- JUCE 9.0.2 and Catch2 3.8.1 are fetched at configure time from pinned GitHub release archives
-  verified by SHA-256 (`cmake/Dependencies.cmake`). The repository was not a git repository at
-  M0, so submodules were not an option; FetchContent keeps the tree free of vendored code while
-  staying reproducible. `FETCHCONTENT_SOURCE_DIR_JUCE` points the build at a local checkout.
+- JUCE 9.0.2 and Catch2 v3.9.1 are git submodules in `external/`, pinned to their release tags
+  (the same commits as the other Catastrophic Audio projects). CMake stops with a message if
+  `external/JUCE` is empty.
+- A Release build installs the AU and VST3 into the user plugin folders; Debug does not
+  (`A5_COPY_PLUGIN`). Both would install to the same place, and whichever built last would be what
+  a DAW loads.
+- Windows links the C++ runtime statically, so a host does not need `VCRUNTIME140.dll` beside the
+  plugin to load it.
 - Company: Catastrophic Audio (bundle ID `com.catastrophicaudio.ninetiesmultifx`, manufacturer
   code `Ctcd`, shared with its other plugins). Plugin code `Nmf1`. The product name
   "Nineties Multi-FX" is a working title chosen to avoid the original's name and trade dress
@@ -106,6 +110,5 @@ attributes in Milestone 2 under a schema-version bump only if the change is not 
 | Not yet created: `Compressor`, `Drive`, `ThreeBandEq`, `Modulation`, `TimeEffects`, `DelayLine`, `FixedPoint`, `DenormalGuard` | Milestone 1+; M0 forbids speculative DSP. `ScopedNoDenormals` in `processBlock` covers denormals for now. |
 | Not yet created: `src/ui/ProgramDisplay` | Bank/program workflow is Milestone 2. |
 | Not yet created: `tools/*`, `docs/measurement-protocol.md` | Milestone 4. Directories exist. |
-| Not created: `LICENSE` | Licence choice is open; see README. JUCE 9 is AGPLv3 or commercial, which constrains it. |
 | Added `docs/source-register.md` early | The evidence register needs somewhere to cite sources. |
 | Removed the CLion template `main.cpp` | Replaced by the plugin targets. |
