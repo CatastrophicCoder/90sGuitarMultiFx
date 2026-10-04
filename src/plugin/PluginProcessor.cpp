@@ -1,0 +1,122 @@
+#include "plugin/PluginProcessor.h"
+
+#include "core/ParameterIds.h"
+#include "core/ParameterLayout.h"
+#include "core/PresetState.h"
+#include "plugin/PluginEditor.h"
+
+namespace a5
+{
+
+PluginProcessor::PluginProcessor()
+    : AudioProcessor(BusesProperties()
+                         .withInput("Input", juce::AudioChannelSet::stereo(), true)
+                         .withOutput("Output", juce::AudioChannelSet::stereo(), true))
+    , parameterState(*this, nullptr, "Parameters", createParameterLayout())
+{
+    inputTrimDb = parameterState.getRawParameterValue(ParameterIds::inputTrim);
+    outputLevelDb = parameterState.getRawParameterValue(ParameterIds::outputLevel);
+    globalBypass = parameterState.getRawParameterValue(ParameterIds::globalBypass);
+
+    for (std::size_t block = 0; block < numEffectBlocks; ++block)
+        effectEnabled[block] = parameterState.getRawParameterValue(ParameterIds::effectEnabled[block]);
+}
+
+bool PluginProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+{
+    // Mono in → stereo out is the usual guitar-plugin case. The original's outputs are L/mono and R
+    // (evidence register EV-004); its input configuration is not yet recorded, and where its signal
+    // becomes stereo is unknown (EV-005).
+    const auto input = layouts.getMainInputChannelSet();
+    const auto output = layouts.getMainOutputChannelSet();
+
+    if (output == juce::AudioChannelSet::mono())
+        return input == juce::AudioChannelSet::mono();
+
+    if (output == juce::AudioChannelSet::stereo())
+        return input == juce::AudioChannelSet::mono() || input == juce::AudioChannelSet::stereo();
+
+    return false;
+}
+
+void PluginProcessor::prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock)
+{
+    engine.prepare({sampleRate, maximumExpectedSamplesPerBlock, getTotalNumOutputChannels()});
+    engine.setParameters(readParameterSnapshot());
+    engine.reset();
+}
+
+void PluginProcessor::reset()
+{
+    engine.reset();
+}
+
+ParameterSnapshot PluginProcessor::readParameterSnapshot() const noexcept
+{
+    ParameterSnapshot snapshot;
+    snapshot.inputTrimDb = inputTrimDb->load(std::memory_order_relaxed);
+    snapshot.outputLevelDb = outputLevelDb->load(std::memory_order_relaxed);
+    snapshot.globalBypass = globalBypass->load(std::memory_order_relaxed) >= 0.5f;
+
+    for (std::size_t block = 0; block < numEffectBlocks; ++block)
+        snapshot.effectEnabled[block] = effectEnabled[block]->load(std::memory_order_relaxed) >= 0.5f;
+
+    return snapshot;
+}
+
+void PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
+{
+    const juce::ScopedNoDenormals noDenormals;
+
+    const int inputChannels = getTotalNumInputChannels();
+    const int outputChannels = getTotalNumOutputChannels();
+    const int numSamples = buffer.getNumSamples();
+
+    // Output-only channels hold garbage on entry. A mono input feeds every output so mono in
+    // produces a valid stereo pair; the stereo-placement of later blocks is a placeholder
+    // (evidence register EV-005).
+    for (int channel = inputChannels; channel < outputChannels; ++channel)
+    {
+        if (inputChannels == 1)
+            buffer.copyFrom(channel, 0, buffer, 0, 0, numSamples);
+        else
+            buffer.clear(channel, 0, numSamples);
+    }
+
+    engine.setParameters(readParameterSnapshot());
+    engine.process({buffer.getArrayOfWritePointers(), outputChannels, numSamples});
+}
+
+juce::AudioProcessorParameter* PluginProcessor::getBypassParameter() const
+{
+    return parameterState.getParameter(ParameterIds::globalBypass);
+}
+
+juce::AudioProcessorEditor* PluginProcessor::createEditor()
+{
+    return new PluginEditor(*this);
+}
+
+void PluginProcessor::getStateInformation(juce::MemoryBlock& destData)
+{
+    if (const auto xml = state::toXml(*this))
+        copyXmlToBinary(*xml, destData);
+}
+
+void PluginProcessor::setStateInformation(const void* data, int sizeInBytes)
+{
+    // Corrupt or foreign data leaves the current settings untouched.
+    if (const auto xml = getXmlFromBinary(data, sizeInBytes))
+    {
+        const auto result = state::fromXml(*xml, *this);
+        if (result.loaded)
+            lastLoadedSchemaVersion = result.schemaVersion;
+    }
+}
+
+} // namespace a5
+
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new a5::PluginProcessor();
+}

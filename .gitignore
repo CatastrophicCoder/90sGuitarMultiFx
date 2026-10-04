@@ -1,0 +1,14 @@
+# Build trees (CMake, CLion)
+/build*/
+/cmake-build-*/
+/out/
+
+# IDE state
+/.idea/
+/.vscode/
+.DS_Store
+
+# Measurement captures stay outside the repository unless redistribution rights are clear (plan §18).
+/captures/
+*.wav
+!tests/TestSignals/**/*.wav
