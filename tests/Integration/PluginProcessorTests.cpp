@@ -7,8 +7,8 @@
 
 #include <random>
 
-using a5::PluginProcessor;
-namespace ParameterIds = a5::ParameterIds;
+using fivea::PluginProcessor;
+namespace ParameterIds = fivea::ParameterIds;
 
 namespace
 {
@@ -63,11 +63,11 @@ bool channelsEqual(const juce::AudioBuffer<float>& a, int channelA, const juce::
 } // namespace
 
 // APVTS starts a timer, which needs the message manager.
-#define A5_JUCE_TEST_SETUP const juce::ScopedJuceInitialiser_GUI juceInitialiser
+#define FIVEA_JUCE_TEST_SETUP const juce::ScopedJuceInitialiser_GUI juceInitialiser
 
 TEST_CASE("Stereo pass-through through the AudioProcessor at default settings")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
     processor.setPlayConfigDetails(2, 2, 48000.0, 256);
     processor.prepareToPlay(48000.0, 256);
@@ -85,7 +85,7 @@ TEST_CASE("Stereo pass-through through the AudioProcessor at default settings")
 
 TEST_CASE("Mono input feeds both outputs of a stereo layout")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
 
     juce::AudioProcessor::BusesLayout layout;
@@ -109,7 +109,7 @@ TEST_CASE("Mono input feeds both outputs of a stereo layout")
 
 TEST_CASE("Default settings stay bit-transparent after a state reload")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor source;
     const auto block = saveState(source);
 
@@ -131,7 +131,7 @@ TEST_CASE("Default settings stay bit-transparent after a state reload")
 
 TEST_CASE("Supported bus layouts")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
 
     auto supports = [&](const juce::AudioChannelSet& in, const juce::AudioChannelSet& out)
@@ -154,21 +154,21 @@ TEST_CASE("Supported bus layouts")
 
 TEST_CASE("State records the schema version and model")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
 
     const auto block = saveState(processor);
     const auto xml = juce::AudioProcessor::getXmlFromBinary(block.getData(), static_cast<int>(block.getSize()));
 
     REQUIRE(xml != nullptr);
-    CHECK(xml->hasTagName(a5::state::rootTag));
-    CHECK(xml->getIntAttribute("schemaVersion") == a5::state::currentSchemaVersion);
-    CHECK(xml->getStringAttribute("model") == a5::state::modelIdentifier);
+    CHECK(xml->hasTagName(fivea::state::rootTag));
+    CHECK(xml->getIntAttribute("schemaVersion") == fivea::state::currentSchemaVersion);
+    CHECK(xml->getStringAttribute("model") == fivea::state::modelIdentifier);
 }
 
 TEST_CASE("State round trip restores every parameter and the schema version")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor source;
     setPlainValue(source, ParameterIds::inputTrim, -7.5f);
     setPlainValue(source, ParameterIds::outputLevel, 3.2f);
@@ -181,7 +181,7 @@ TEST_CASE("State round trip restores every parameter and the schema version")
     PluginProcessor restored;
     restored.setStateInformation(block.getData(), static_cast<int>(block.getSize()));
 
-    CHECK(restored.getLastLoadedSchemaVersion() == a5::state::currentSchemaVersion);
+    CHECK(restored.getLastLoadedSchemaVersion() == fivea::state::currentSchemaVersion);
     CHECK_THAT(plainValue(restored, ParameterIds::inputTrim), Catch::Matchers::WithinAbs(-7.5f, 1.0e-4f));
     CHECK_THAT(plainValue(restored, ParameterIds::outputLevel), Catch::Matchers::WithinAbs(3.2f, 1.0e-4f));
     CHECK(plainValue(restored, ParameterIds::globalBypass) == 1.0f);
@@ -197,7 +197,7 @@ TEST_CASE("State round trip restores every parameter and the schema version")
 
 TEST_CASE("Loading ignores unknown fields, defaults missing ones and clamps out-of-range values")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
     setPlainValue(processor, ParameterIds::outputLevel, 10.0f);
     setPlainValue(processor, ParameterIds::modulationEnabled, 1.0f);
@@ -223,7 +223,7 @@ TEST_CASE("Loading ignores unknown fields, defaults missing ones and clamps out-
 
 TEST_CASE("A newer schema version still loads the parameters this build knows")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
 
     loadXml(processor, R"(
@@ -237,7 +237,7 @@ TEST_CASE("A newer schema version still loads the parameters this build knows")
 
 TEST_CASE("Foreign, unversioned or corrupt state leaves the current settings untouched")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
     setPlainValue(processor, ParameterIds::inputTrim, 5.0f);
 
@@ -260,7 +260,7 @@ TEST_CASE("Foreign, unversioned or corrupt state leaves the current settings unt
 
 TEST_CASE("The global bypass parameter is exposed to hosts")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
 
     CHECK(processor.getBypassParameter() == processor.getParameterState().getParameter(ParameterIds::globalBypass));
@@ -268,7 +268,7 @@ TEST_CASE("The global bypass parameter is exposed to hosts")
 
 TEST_CASE("The editor opens and closes")
 {
-    A5_JUCE_TEST_SETUP;
+    FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
     std::unique_ptr<juce::AudioProcessorEditor> editor{processor.createEditorAndMakeActive()};
 

@@ -1,7 +1,7 @@
 # Progress
 
 Current status, decisions made, and a short log of each working session. The plan and milestone
-definitions are in `docs/A5_implementation_plan.md` (§21); what is known about the original unit
+definitions are in `docs/implementation-plan.md` (§21); what is known about the original unit
 versus assumed is in `docs/evidence-register.md`.
 
 ## Milestone status
@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | Not started | |
+| 1 Complete functional chain | Re-planning (2026-10-05) | The owner's manual changes the block structure and parameters; plan to be revised before step 1. |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -40,11 +40,31 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   tag `FiveAState`, CMake project `FiveAMultiFx`. Renamed before any release, so no saved session
   or preset uses the old ones. Plugin codes unchanged. The GitHub repository keeps its name.
 
+- 2026-10-05 (Milestone 1 plan): DSP building blocks are **our own code**, so `fivea_engine` stays
+  free of JUCE (filters, delay line and oversampler written from published sources and cited).
+  Placeholder reverb is a **compact FDN** (Jot-style, Hadamard matrix). Drive oversampling is
+  **off by default** (zero latency by default; 2x/4x selectable). The five effect enables stay
+  **off by default**.
+
+- 2026-10-05 (after reading SRC-001): the five effects' host parameters are **the documented set,
+  stepped** (e.g. SENS 0–15, REV/DELAY MODE 1–7), matching the unit control for control; step
+  mappings are placeholders until measured. **Noise reduction (NR LEVEL)** and **master volume
+  (MASTER)** join Milestone 1; the volume pedal does not.
+
+- 2026-10-05: **Visual design: close replica of the original panel** (option b): layout,
+  proportions, colours, label styling and workflow, from the owner's manual drawing (SRC-001 p. 2)
+  and a reference photo (SRC-003). The original's logo and model name are replaced by our own;
+  no traced or photographic artwork. Plan §17.2 and `CLAUDE.md` amended.
+- 2026-10-05: **No trademarked brand or model names** anywhere in the repository or the UI; the
+  original is "the original unit". Code identifiers renamed (`FiveAProcessor`, namespace
+  `fivea`, target `FiveAPlugin`, `FIVEA_*` options); the plan file renamed to
+  `docs/implementation-plan.md`. Git history is left as it is.
+
 ## Session log
 
 ### 2026-10-04
 
-- M0 implemented: CMake project, JUCE plugin (VST3, AU, Standalone), JUCE-free `A5Processor`
+- M0 implemented: CMake project, JUCE plugin (VST3, AU, Standalone), JUCE-free `FiveAProcessor`
   engine with input trim, output level and global bypass, versioned XML state, editor with five
   disabled effect sections, 22 Catch2 tests, architecture/evidence/source/parameter/validation
   documents.
@@ -63,3 +83,10 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   corrected to in front of an amp, as the original was used.
 - Pushed. CI green on all seven jobs (`ec6afd2`), including auval and pluginval on macOS and
   pluginval on Windows: the first CI confirmation of the Linux fixes and the validators.
+- Primary sources catalogued: SRC-001 the original unit's owner's manual and SRC-002 its
+  service manual, both kept outside the repository. Parameter tables transcribed
+  into `parameter-specification.md`; evidence register re-cited (EV-001–023). Front-of-amp use is
+  now CONFIRMED. New findings that change Milestone 1: the documented parameter set differs from
+  the planned engineering one; reverb/delay has 7 fixed modes with a 490 ms maximum delay;
+  chorus/flanger has 5 modes including slapback; there is a noise reduction stage, a per-program
+  master volume and a volume pedal input that the plan's chain does not list.

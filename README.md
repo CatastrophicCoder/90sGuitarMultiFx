@@ -1,12 +1,11 @@
 # Five-A MultiFX Processor
 
-A guitar multi-effect plugin whose architecture and workflow are inspired by the red Korg A5
-Guitar performance signal processor of the early 1990s. It is an independent project, not
-affiliated with or endorsed by Korg.
+A guitar multi-effect plugin whose architecture and workflow are modelled on an early-1990s
+guitar multi-effect floor unit, referred to here as "the original unit".
 
 **Status: Milestone 0.** The project builds VST3 and (on macOS) Audio Unit plugins
 that pass audio through with input trim, output level and bypass. **There are no effects yet**, and
-nothing in this build reproduces the sound of the original unit. See `docs/A5_implementation_plan.md`
+nothing in this build reproduces the sound of the original unit. See `docs/implementation-plan.md`
 for the roadmap and `docs/evidence-register.md` for what is known versus assumed.
 
 ## Requirements
@@ -32,7 +31,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Built products land in `build/A5Plugin_artefacts/<config>/`:
+Built products land in `build/FiveAPlugin_artefacts/<config>/`:
 
 | Format | Path |
 |--------|------|
@@ -41,14 +40,14 @@ Built products land in `build/A5Plugin_artefacts/<config>/`:
 
 A Release build also installs the AU and VST3 into your user plugin folders
 (`~/Library/Audio/Plug-Ins` on macOS); a Debug build does not. Override with
-`-DA5_COPY_PLUGIN=ON` or `OFF`. To build without tests, `-DA5_BUILD_TESTS=OFF`.
+`-DFIVEA_COPY_PLUGIN=ON` or `OFF`. To build without tests, `-DFIVEA_BUILD_TESTS=OFF`.
 
 ### Validating the plugin (macOS)
 
 ```sh
 auval -v aufx Nmf1 Ctcd     # the installed AU, i.e. the last Release build
 /Applications/pluginval.app/Contents/MacOS/pluginval --strictness-level 10 \
-    --validate "build/A5Plugin_artefacts/Release/VST3/Five-A MultiFX Processor.vst3"
+    --validate "build/FiveAPlugin_artefacts/Release/VST3/Five-A MultiFX Processor.vst3"
 ```
 
 ### Formatting
@@ -65,7 +64,7 @@ clang-format -i $(git ls-files 'src/*.h' 'src/*.cpp' 'tests/*.h' 'tests/*.cpp')
 | Path | Contents |
 |------|----------|
 | `external` | JUCE and Catch2 submodules, pinned to release tags |
-| `src/core` | Engine façade (`A5Processor`, pure C++), parameter IDs, parameter layout and state (JUCE) |
+| `src/core` | Engine façade (`FiveAProcessor`, pure C++), parameter IDs, parameter layout and state (JUCE) |
 | `src/dsp` | DSP building blocks (only gain smoothing so far) |
 | `src/plugin` | JUCE `AudioProcessor` and editor |
 | `src/ui` | Editor components |

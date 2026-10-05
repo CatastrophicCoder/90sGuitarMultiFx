@@ -1,8 +1,8 @@
-# Project: A5 Guitar-Inspired Audio Plugin
+# Project: Five-A MultiFX Processor
 
 ## 1. Objective
 
-Create a cross-platform audio plugin inspired by the architecture and workflow of the red Korg A5 Guitar performance signal processor.
+Create a cross-platform audio plugin modelled on the architecture and workflow of an early-1990s guitar multi-effect floor unit ("the original unit").
 
 The initial goal is NOT to claim bit-accurate emulation.
 
@@ -14,7 +14,7 @@ The project must progress through three clearly separated fidelity levels:
     - Produce a usable guitar multi-effect plugin.
 
 2. Measurement-assisted sound-alike
-    - Add behavior inferred from controlled measurements of a physical A5 Guitar.
+    - Add behavior inferred from controlled measurements of a physical original unit.
     - Match frequency response, nonlinear transfer curves, dynamics, modulation, delay, and reverb behavior.
 
 3. Optional research emulation
@@ -181,8 +181,8 @@ Create the following structure:
 │   │   ├── PluginEditor.cpp
 │   │   └── PluginEditor.h
 │   ├── core/
-│   │   ├── A5Processor.cpp
-│   │   ├── A5Processor.h
+│   │   ├── FiveAProcessor.cpp
+│   │   ├── FiveAProcessor.h
 │   │   ├── ParameterIds.h
 │   │   ├── ParameterLayout.cpp
 │   │   ├── PresetState.cpp
@@ -232,7 +232,7 @@ Do not add generated build files to source control.
 
 Create:
 
-class A5Processor
+class FiveAProcessor
 
 Responsibilities:
 
@@ -248,7 +248,7 @@ Responsibilities:
 
 Suggested conceptual interface:
 
-class A5Processor
+class FiveAProcessor
 {
 public:
 void prepare(const ProcessSpec&);
@@ -348,7 +348,7 @@ DocumentedParameter
 → NormalizedValue
 → AlgorithmParameter
 
-This permits later substitution of exact A5 value mappings.
+This permits later substitution of exact value mappings of the original unit.
 
 ---
 
@@ -443,7 +443,7 @@ Implement initial models:
 - post-clipping tone filter
 - output level compensation
 
-Do not hard-code tanh as the permanent A5 model.
+Do not hard-code tanh as the permanent model of the original unit.
 
 Provide candidate waveshapers behind one interface:
 
@@ -512,7 +512,7 @@ double highFrequency;
 double maxGainDb;
 };
 
-Do not label any initial frequencies as original A5 values.
+Do not label any initial frequencies as the original unit's values.
 
 ## 10.2 Requirements
 
@@ -655,7 +655,7 @@ First version:
 - damping
 - wet/dry mix
 
-Do not call the initial algorithm "the A5 reverb."
+Do not call the initial algorithm "the original unit's reverb."
 
 It is a functional placeholder.
 
@@ -725,7 +725,7 @@ Centralize all potentially hardware-specific values.
 
 Create:
 
-struct A5ModelProfile
+struct FiveAModelProfile
 {
 double internalSampleRate;
 CompressorProfile compressor;
@@ -852,9 +852,7 @@ A later Hardware UI mode may reflect:
 - compact numeric display
 - direct manual/edit workflow
 
-Do not copy Korg logos, trade dress, panel artwork, typography, or product photography.
-
-Use a distinct project name and visual identity until trademark and product-naming issues have been reviewed.
+(amended 2026-10-05) The panel is a close visual replica of the original unit: layout, proportions, colours, label styling and workflow (docs/panel-specification.md). No brand or model name of the original appears in the UI or the repository; the plugin's own names replace them. All artwork is drawn from scratch; no product photography ships.
 
 ---
 
@@ -875,7 +873,7 @@ It should generate and export:
 - polarity test
 - stereo-identification signal
 
-It should ingest recorded A5 output and produce:
+It should ingest recorded output of the original unit and produce:
 
 - gain
 - latency
@@ -898,8 +896,8 @@ Store measurement metadata:
 - input and output interface
 - interface sample rate
 - gain settings
-- A5 input level
-- A5 output level
+- input level of the original unit
+- output level of the original unit
 - selected program
 - all parameter positions
 - mono/stereo connection
@@ -1009,7 +1007,7 @@ Deliver:
 - repository skeleton
 - CMake project
 - JUCE plugin targets (amended 2026-10-05: no standalone; the plugin goes in front of an amp, as the original was used, and has no use on its own)
-- empty A5Processor
+- empty FiveAProcessor
 - evidence register
 - architecture document
 - parameter specification template
@@ -1118,7 +1116,7 @@ Deliver:
 - plugin validation
 - crash and fuzz testing for state parsing
 - packaging
-- legal and attribution review
+- licence and attribution review
 - final documentation
 
 ---
@@ -1135,7 +1133,7 @@ Perform these actions:
 4. Integrate JUCE in the least intrusive reproducible way supported by the existing repository.
 5. Create VST3, AU where supported, and Standalone targets.
 6. Implement transparent stereo pass-through.
-7. Create the A5Processor façade with prepare, reset, and process methods.
+7. Create the FiveAProcessor façade with prepare, reset, and process methods.
 8. Add stable placeholder parameter IDs for:
     - input trim
     - output level
@@ -1170,7 +1168,7 @@ Perform these actions:
 
 Do not implement speculative DSP algorithms during Milestone 0.
 
-Do not claim that any placeholder implementation reproduces the original A5 sound.
+Do not claim that any placeholder implementation reproduces the original unit's sound.
 
 ---
 

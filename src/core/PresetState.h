@@ -14,7 +14,7 @@
 // default, out-of-range values are clamped, and a document that is not ours or has no schema
 // version is rejected without touching the current state.
 
-namespace a5::state
+namespace fivea::state
 {
 
 inline constexpr int currentSchemaVersion = 1;
@@ -32,4 +32,4 @@ struct LoadResult
 // Message thread only: sets parameters through the host-notifying path.
 LoadResult fromXml(const juce::XmlElement& xml, juce::AudioProcessor& processor);
 
-} // namespace a5::state
+} // namespace fivea::state

@@ -1,6 +1,6 @@
 #include "ui/EffectSection.h"
 
-namespace a5::ui
+namespace fivea::ui
 {
 
 EffectSection::EffectSection(juce::AudioProcessorValueTreeState& state, const char* enableParameterId,
@@ -42,4 +42,4 @@ void EffectSection::resized()
     statusLabel.setBounds(area.removeFromTop(24));
 }
 
-} // namespace a5::ui
+} // namespace fivea::ui

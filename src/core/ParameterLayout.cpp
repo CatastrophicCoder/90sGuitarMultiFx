@@ -2,7 +2,7 @@
 
 #include "core/ParameterIds.h"
 
-namespace a5
+namespace fivea
 {
 
 namespace
@@ -43,4 +43,4 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     return layout;
 }
 
-} // namespace a5
+} // namespace fivea

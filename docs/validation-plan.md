@@ -6,8 +6,8 @@ How each milestone is shown to work. Tests run with `ctest`; see the README for 
 
 | Executable | Links | Purpose |
 |------------|-------|---------|
-| `a5_engine_tests` | `a5_engine` only | Engine behaviour with no JUCE and no host; proves the DSP library stands alone (plan §4). |
-| `a5_plugin_tests` | plugin shared code | The `AudioProcessor` as a host drives it: buses, `processBlock`, state, bypass parameter, editor. |
+| `fivea_engine_tests` | `fivea_engine` only | Engine behaviour with no JUCE and no host; proves the DSP library stands alone (plan §4). |
+| `fivea_plugin_tests` | plugin shared code | The `AudioProcessor` as a host drives it: buses, `processBlock`, state, bypass parameter, editor. |
 
 Planned directories: `tests/Golden` (rendered reference files) and `tests/TestSignals` (generated
 stimuli) are empty until Milestone 1 and Milestone 4 respectively.

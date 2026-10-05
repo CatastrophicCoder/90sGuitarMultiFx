@@ -4,7 +4,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-namespace a5
+namespace fivea
 {
 
 class PluginProcessor;
@@ -22,4 +22,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };
 
-} // namespace a5
+} // namespace fivea

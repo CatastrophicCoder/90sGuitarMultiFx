@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <optional>
 
-namespace a5::state
+namespace fivea::state
 {
 
 namespace
@@ -126,4 +126,4 @@ LoadResult fromXml(const juce::XmlElement& source, juce::AudioProcessor& process
     return {true, schemaVersion};
 }
 
-} // namespace a5::state
+} // namespace fivea::state

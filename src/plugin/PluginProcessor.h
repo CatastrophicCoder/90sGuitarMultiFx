@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/A5Processor.h"
+#include "core/FiveAProcessor.h"
 #include "core/ParameterSnapshot.h"
 
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -8,11 +8,11 @@
 #include <array>
 #include <atomic>
 
-namespace a5
+namespace fivea
 {
 
 // Host-facing adapter: owns the parameters and state, and feeds the engine an allocation-free
-// parameter snapshot each block. All signal processing lives in A5Processor.
+// parameter snapshot each block. All signal processing lives in FiveAProcessor.
 class PluginProcessor final : public juce::AudioProcessor
 {
 public:
@@ -62,10 +62,10 @@ private:
     std::atomic<float>* globalBypass = nullptr;
     std::array<std::atomic<float>*, numEffectBlocks> effectEnabled{};
 
-    A5Processor engine;
+    FiveAProcessor engine;
     int lastLoadedSchemaVersion = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
 
-} // namespace a5
+} // namespace fivea

@@ -3,7 +3,7 @@
 #include <cmath>
 #include <functional>
 
-namespace a5::dsp
+namespace fivea::dsp
 {
 
 // Linear ramp towards a target over a fixed duration. Lands exactly on the target when the ramp
@@ -68,4 +68,4 @@ private:
     int samplesRemaining = 0;
 };
 
-} // namespace a5::dsp
+} // namespace fivea::dsp

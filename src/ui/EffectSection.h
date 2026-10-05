@@ -3,7 +3,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-namespace a5::ui
+namespace fivea::ui
 {
 
 // One of the five major effect blocks. In Milestone 0 the section is shown disabled: its enable
@@ -26,4 +26,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EffectSection)
 };
 
-} // namespace a5::ui
+} // namespace fivea::ui

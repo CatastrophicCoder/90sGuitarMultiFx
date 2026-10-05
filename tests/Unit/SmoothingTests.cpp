@@ -2,7 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using a5::dsp::LinearSmoother;
+using fivea::dsp::LinearSmoother;
 
 TEST_CASE("LinearSmoother lands exactly on its target when the ramp ends")
 {

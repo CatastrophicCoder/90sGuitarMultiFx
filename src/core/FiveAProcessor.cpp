@@ -1,11 +1,11 @@
-#include "core/A5Processor.h"
+#include "core/FiveAProcessor.h"
 
 #include "core/ParameterIds.h"
 
 #include <algorithm>
 #include <cmath>
 
-namespace a5
+namespace fivea
 {
 
 float sanitiseGainDb(float gainDb) noexcept
@@ -25,21 +25,21 @@ float decibelsToGain(float gainDb) noexcept
     return gainDb == 0.0f ? 1.0f : std::pow(10.0f, gainDb / 20.0f);
 }
 
-void A5Processor::prepare(const ProcessSpec& spec) noexcept
+void FiveAProcessor::prepare(const ProcessSpec& spec) noexcept
 {
     inputGain.prepare(spec.sampleRate, gainRampSeconds);
     outputGain.prepare(spec.sampleRate, gainRampSeconds);
     reset();
 }
 
-void A5Processor::reset() noexcept
+void FiveAProcessor::reset() noexcept
 {
     applyGainTargets();
     inputGain.setCurrentAndTarget(inputGain.getTarget());
     outputGain.setCurrentAndTarget(outputGain.getTarget());
 }
 
-void A5Processor::setParameters(const ParameterSnapshot& snapshot) noexcept
+void FiveAProcessor::setParameters(const ParameterSnapshot& snapshot) noexcept
 {
     parameters = snapshot;
     parameters.inputTrimDb = sanitiseGainDb(snapshot.inputTrimDb);
@@ -47,7 +47,7 @@ void A5Processor::setParameters(const ParameterSnapshot& snapshot) noexcept
     applyGainTargets();
 }
 
-void A5Processor::applyGainTargets() noexcept
+void FiveAProcessor::applyGainTargets() noexcept
 {
     // Bypass ramps both gains to unity rather than switching, so engaging it while trim is
     // non-zero does not click. Once the ramp ends the output is the input, bit for bit.
@@ -56,7 +56,7 @@ void A5Processor::applyGainTargets() noexcept
     outputGain.setTarget(bypassed ? 1.0f : decibelsToGain(parameters.outputLevelDb));
 }
 
-void A5Processor::process(AudioBufferView buffer) noexcept
+void FiveAProcessor::process(AudioBufferView buffer) noexcept
 {
     const int numChannels = buffer.getNumChannels();
     const int numSamples = buffer.getNumSamples();
@@ -73,4 +73,4 @@ void A5Processor::process(AudioBufferView buffer) noexcept
     }
 }
 
-} // namespace a5
+} // namespace fivea

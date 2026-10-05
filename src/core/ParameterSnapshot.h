@@ -3,7 +3,7 @@
 #include <array>
 #include <cstddef>
 
-namespace a5
+namespace fivea
 {
 
 // The five major blocks in the documented serial order (docs/evidence-register.md, EV-001).
@@ -33,4 +33,4 @@ struct ParameterSnapshot
     }
 };
 
-} // namespace a5
+} // namespace fivea

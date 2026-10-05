@@ -2,7 +2,7 @@
 
 #include "core/ParameterIds.h"
 
-namespace a5::ui
+namespace fivea::ui
 {
 
 MainPanel::GainControl::GainControl(juce::AudioProcessorValueTreeState& state, const char* parameterId,
@@ -76,4 +76,4 @@ void MainPanel::resized()
         section->setBounds(area.removeFromLeft(sectionWidth).reduced(4, 0));
 }
 
-} // namespace a5::ui
+} // namespace fivea::ui

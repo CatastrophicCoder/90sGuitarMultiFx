@@ -14,15 +14,15 @@ build reproduces, or claims to reproduce, the sound of the original unit.
    │  ParameterSnapshot (by value, once per block)
    │  AudioBufferView   (non-owning channel pointers)
    ▼
- A5Processor                src/core        Engine façade. Pure C++20, no JUCE.
+ FiveAProcessor                src/core        Engine façade. Pure C++20, no JUCE.
    input trim → [Compressor → Drive → EQ → Chorus/Flanger → Reverb/Delay] → output level
                  (Milestone 1; the documented order, EV-001)
 ```
 
-- **`a5_engine`** (static library): `A5Processor`, `AudioBufferView`, `ParameterSnapshot`,
+- **`fivea_engine`** (static library): `FiveAProcessor`, `AudioBufferView`, `ParameterSnapshot`,
   `ParameterIds.h`, `src/dsp/*`. It has no JUCE dependency so it can be tested without a host and
   wrapped by another plugin format (CLAP) later without changing DSP code (plan §4).
-- **`A5Plugin`** (JUCE shared-code target, plus VST3 and, on macOS, AU wrappers):
+- **`FiveAPlugin`** (JUCE shared-code target, plus VST3 and, on macOS, AU wrappers):
   `PluginProcessor`, `PluginEditor`, `ParameterLayout`, `PresetState`, `src/ui/*`.
 
 `ParameterLayout.cpp` and `PresetState.cpp` live in `src/core` as the plan lays out, but depend on
@@ -36,9 +36,9 @@ model either chip.
 
 | Call | Thread | Allocation | Notes |
 |------|--------|------------|-------|
-| `A5Processor::prepare`, `reset` | message / host prepare | allowed (none today) | Sets ramp lengths for the sample rate; `reset` settles every ramp on the current parameters. |
-| `A5Processor::setParameters` | audio | none | Copies a plain struct, sanitises values (clamp, snap to 0.1 dB, NaN → 0 dB). |
-| `A5Processor::process` | audio | none | No locks, I/O, logging or construction. |
+| `FiveAProcessor::prepare`, `reset` | message / host prepare | allowed (none today) | Sets ramp lengths for the sample rate; `reset` settles every ramp on the current parameters. |
+| `FiveAProcessor::setParameters` | audio | none | Copies a plain struct, sanitises values (clamp, snap to 0.1 dB, NaN → 0 dB). |
+| `FiveAProcessor::process` | audio | none | No locks, I/O, logging or construction. |
 | `PluginProcessor::processBlock` | audio | none | Reads parameters from APVTS atomics (relaxed loads) into a snapshot. |
 | `get/setStateInformation` | message | yes | Never touches the engine directly; the audio thread sees new values through the atomics. |
 
@@ -73,7 +73,7 @@ release that adds them.
 Stored inside JUCE's binary XML wrapper (`copyXmlToBinary`). Values are in plain units, written in
 parameter-layout order, so saving the same settings always yields the same bytes.
 
-Loading (`a5::state::fromXml`):
+Loading (`fivea::state::fromXml`):
 
 1. Root tag must match and `schemaVersion` must be an integer ≥ 1; otherwise the load is refused
    and current settings are kept.
@@ -93,14 +93,14 @@ attributes in Milestone 2 under a schema-version bump only if the change is not 
   (the same commits as the other Catastrophic Audio projects). CMake stops with a message if
   `external/JUCE` is empty.
 - A Release build installs the AU and VST3 into the user plugin folders; Debug does not
-  (`A5_COPY_PLUGIN`). Both would install to the same place, and whichever built last would be what
+  (`FIVEA_COPY_PLUGIN`). Both would install to the same place, and whichever built last would be what
   a DAW loads.
 - Windows links the C++ runtime statically, so a host does not need `VCRUNTIME140.dll` beside the
   plugin to load it.
 - Company: Catastrophic Audio (bundle ID `com.catastrophicaudio.fivea`, manufacturer
   code `Ctcd`, shared with its other plugins). Plugin code `Nmf1`. Product name
   "Five-A MultiFX Processor" (owner's decision 2026-10-05; it avoids the original's literal name
-  and uses none of its trade dress, plan §17.2). Changing the manufacturer or plugin code, or the
+  and replaces its model name, plan §17.2). Changing the manufacturer or plugin code, or the
   bundle ID, after release breaks saved sessions.
 
 ## Differences from the plan's file layout (plan §5)

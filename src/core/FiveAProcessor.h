@@ -4,7 +4,7 @@
 #include "core/ParameterSnapshot.h"
 #include "dsp/Smoothing.h"
 
-namespace a5
+namespace fivea
 {
 
 // Façade over the whole signal chain. Milestone 0: no effect blocks exist yet, so the chain is
@@ -13,7 +13,7 @@ namespace a5
 //
 // prepare() and reset() run off the audio thread; setParameters() and process() are real-time
 // safe (no allocation, locking or I/O).
-class A5Processor
+class FiveAProcessor
 {
 public:
     void prepare(const ProcessSpec& spec) noexcept;
@@ -40,4 +40,4 @@ private:
 [[nodiscard]] float sanitiseGainDb(float gainDb) noexcept;
 [[nodiscard]] float decibelsToGain(float gainDb) noexcept;
 
-} // namespace a5
+} // namespace fivea

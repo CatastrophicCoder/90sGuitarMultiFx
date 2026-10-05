@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cstddef>
 
-namespace a5
+namespace fivea
 {
 
 struct ProcessSpec
@@ -42,4 +42,4 @@ private:
     int sampleCount;
 };
 
-} // namespace a5
+} // namespace fivea

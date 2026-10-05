@@ -5,7 +5,7 @@
 #include "core/PresetState.h"
 #include "plugin/PluginEditor.h"
 
-namespace a5
+namespace fivea
 {
 
 PluginProcessor::PluginProcessor()
@@ -114,9 +114,9 @@ void PluginProcessor::setStateInformation(const void* data, int sizeInBytes)
     }
 }
 
-} // namespace a5
+} // namespace fivea
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new a5::PluginProcessor();
+    return new fivea::PluginProcessor();
 }

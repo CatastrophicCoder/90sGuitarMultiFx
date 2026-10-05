@@ -2,7 +2,7 @@
 
 #include "plugin/PluginProcessor.h"
 
-namespace a5
+namespace fivea
 {
 
 PluginEditor::PluginEditor(PluginProcessor& pluginProcessor)
@@ -18,4 +18,4 @@ void PluginEditor::resized()
     mainPanel.setBounds(getLocalBounds());
 }
 
-} // namespace a5
+} // namespace fivea

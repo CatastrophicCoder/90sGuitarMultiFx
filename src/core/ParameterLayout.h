@@ -2,9 +2,9 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-namespace a5
+namespace fivea
 {
 
 [[nodiscard]] juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
-} // namespace a5
+} // namespace fivea

@@ -8,11 +8,11 @@
 #include <array>
 #include <memory>
 
-namespace a5::ui
+namespace fivea::ui
 {
 
-// Functional layout in signal order: input, the five documented blocks, output. Deliberately
-// generic in appearance; the plan forbids copying the original's panel artwork or trade dress.
+// Functional layout in signal order: input, the five documented blocks, output. A placeholder
+// until the panel described in docs/panel-specification.md is built (Milestone 1, step 8).
 class MainPanel final : public juce::Component
 {
 public:
@@ -44,4 +44,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainPanel)
 };
 
-} // namespace a5::ui
+} // namespace fivea::ui
