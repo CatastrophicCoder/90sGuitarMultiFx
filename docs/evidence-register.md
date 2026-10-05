@@ -47,6 +47,7 @@ primary citation pending". No row has yet been checked against a primary documen
 | EV-104 | Global bypass ramps gains to unity over the same 20 ms, then is bit-exact | PLACEHOLDER (design choice) | SRC-000 §15 | Bypass is click-free and exposed to hosts via `getBypassParameter()`. Zero latency, so no compensation is needed in M0. | — | Behaviour once blocks with latency (oversampling) exist. |
 | EV-105 | Effect enables default to off | PLACEHOLDER (design choice) | This project | A default of "on" would suggest an effect that does not exist yet. Revisit in Milestone 1. | — | — |
 | EV-106 | Processing at host sample rate (native mode) | PLACEHOLDER (design choice) | SRC-000 §6.2 | Engine is sample-rate aware; tested at 44.1, 48, 88.2, 96 and 192 kHz. | — | — |
+| EV-107 | Intended placement: between an amp (or amp sim) and a cabinet; mono in, stereo out; no standalone | PLACEHOLDER (design choice) | Owner's decision 2026-10-05 | No standalone target. Milestone 1 sets gain staging for post-amp, line-level input; the drive block will receive an amplified, possibly already distorted signal. Amp sims with a built-in cab need theirs switched off. | — | Where the original sat in a rig is not documented (it has a headphone output, EV-004); this row says nothing about it. |
 
 ## Change log
 

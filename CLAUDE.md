@@ -4,9 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Five-A MultiFX Processor by Catastrophic Audio: a guitar multi-effect plugin (AU, VST3,
-Standalone) whose architecture and workflow are inspired by the red Korg A5 Guitar performance
+Five-A MultiFX Processor by Catastrophic Audio: a guitar multi-effect plugin (AU, VST3)
+whose architecture and workflow are inspired by the red Korg A5 Guitar performance
 signal processor. Built with JUCE and C++20 in CLion. Public repo, licensed AGPLv3.
+
+**Intended use: between an amp (or amp sim) and a cabinet.** The plugin is the effects unit only.
+It contains no amp and no cabinet, is not meant to be heard on its own, and therefore has no
+standalone target. Design the effects for post-amp, line-level input: the drive block receives an
+already amplified signal. This is a design decision (evidence register EV-107), not a claim about
+how the original unit was used.
 
 Read these at the start of every session:
 
@@ -88,7 +94,7 @@ wrong DSP, which the validators never look at.
 - `A5_COPY_PLUGIN` is on for Release and off otherwise: Debug and Release install to the same
   place, and whichever built last would be what Logic loads. `A5_BUILD_TESTS` (on) builds the tests.
 - JUCE 9.0.2 and Catch2 v3.9.1 are submodules in `external/`, pinned to release tags (same
-  commits as ampsim). Plugin formats: VST3, Standalone, and AU on macOS.
+  commits as ampsim). Plugin formats: VST3, and AU on macOS. No standalone (see Project).
 - CI (`.github/workflows/build.yml`) checks formatting, then builds Debug and Release on macOS,
   Windows and Linux, runs the tests, validates (auval and pluginval on macOS, pluginval on
   Windows) and uploads the Release artefacts. Linux needs the apt packages listed there; CI is

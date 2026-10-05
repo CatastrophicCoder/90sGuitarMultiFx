@@ -8,7 +8,7 @@ versus assumed is in `docs/evidence-register.md`.
 
 | Milestone | Status | Notes |
 |-----------|--------|-------|
-| 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: run the standalone once with an audio device. |
+| 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, between an amp and a cab. |
 | 1 Complete functional chain | Not started | |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
@@ -28,6 +28,11 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   AGPLv3 licence; JUCE and Catch2 as pinned submodules in `external/` (same commits as ampsim);
   only Release builds install into the plugin folders; static MSVC runtime on Windows; auval and
   pluginval locally and in CI; `CLAUDE.md`; this file; `M<n>:` commit messages.
+- 2026-10-05: **Intended use: between an amp and a cabinet.** The plugin is the effects unit only;
+  it contains no amp or cabinet and is not meant to be heard on its own. Consequently **no
+  standalone**: plan §4, §20 and §21 (Milestone 0) amended. Effects are designed for post-amp,
+  line-level input (see evidence register EV-107). This is how the plugin is meant to be used,
+  not a claim about how the original unit was used.
 - 2026-10-05: Product name **Five-A MultiFX Processor**, replacing the working title "Nineties
   Multi-FX". Every identifier follows it: bundle ID `com.catastrophicaudio.fivea`, saved-state
   tag `FiveAState`, CMake project `FiveAMultiFx`. Renamed before any release, so no saved session
@@ -52,5 +57,6 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 ### 2026-10-05
 
 - Product renamed to Five-A MultiFX Processor (see Decisions), including bundle ID and state tag.
+- Standalone removed (see Decisions); the plugin is meant to sit between an amp and a cabinet.
 - Pushed. CI green on all seven jobs (`ec6afd2`), including auval and pluginval on macOS and
   pluginval on Windows: the first CI confirmation of the Linux fixes and the validators.

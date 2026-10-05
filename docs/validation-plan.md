@@ -30,7 +30,7 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Editor | `The editor opens and closes` | Passing |
 | Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Passing: all jobs green on `ec6afd2` (macOS, Windows, Linux; Debug and Release). The first run failed on Linux (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca` |
 | Plugin validation | `auval -v aufx Nmf1 Ctcd`; pluginval strictness 10 on the VST3 and the AU | Passing locally (macOS) and in CI on `ec6afd2`: auval and pluginval on macOS, pluginval on Windows |
-| Standalone passes audio | Covered at the `processBlock` level above; the standalone application itself has not been run with an audio device | Manual check outstanding |
+| Plugin passes audio in a host (plan §21 M0, amended 2026-10-05) | Covered at the `processBlock` level above, and by auval and pluginval; not yet listened to in a DAW | Manual check outstanding |
 
 ## Not yet covered (planned)
 

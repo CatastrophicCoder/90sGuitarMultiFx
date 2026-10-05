@@ -2,7 +2,7 @@
 
 | Component | Version | Used in | Licence | Source |
 |-----------|---------|---------|---------|--------|
-| JUCE | 9.0.2 | Plugin and standalone (distributed) | Dual: AGPLv3 or the commercial JUCE 9 licence | https://github.com/juce-framework/JUCE |
+| JUCE | 9.0.2 | Plugins (distributed) | Dual: AGPLv3 or the commercial JUCE 9 licence | https://github.com/juce-framework/JUCE |
 | Catch2 | 3.9.1 | Tests only (not distributed) | Boost Software License 1.0 | https://github.com/catchorg/Catch2 |
 
 Both are git submodules in `external/`, pinned to their release tags. Their code is not copied

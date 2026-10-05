@@ -4,7 +4,7 @@ A guitar multi-effect plugin whose architecture and workflow are inspired by the
 Guitar performance signal processor of the early 1990s. It is an independent project, not
 affiliated with or endorsed by Korg.
 
-**Status: Milestone 0.** The project builds VST3, Standalone and (on macOS) Audio Unit targets
+**Status: Milestone 0.** The project builds VST3 and (on macOS) Audio Unit plugins
 that pass audio through with input trim, output level and bypass. **There are no effects yet**, and
 nothing in this build reproduces the sound of the original unit. See `docs/A5_implementation_plan.md`
 for the roadmap and `docs/evidence-register.md` for what is known versus assumed.
@@ -36,7 +36,6 @@ Built products land in `build/A5Plugin_artefacts/<config>/`:
 
 | Format | Path |
 |--------|------|
-| Standalone | `Standalone/Five-A MultiFX Processor.app` (macOS), `.exe` (Windows), binary (Linux) |
 | VST3 | `VST3/Five-A MultiFX Processor.vst3` |
 | AU (macOS) | `AU/Five-A MultiFX Processor.component` |
 

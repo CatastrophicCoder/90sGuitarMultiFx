@@ -1,13 +1,13 @@
 # Architecture
 
-State at **Milestone 0**: a buildable plugin and standalone app that pass audio through with
+State at **Milestone 0**: a buildable plugin (VST3, and AU on macOS) that passes audio through with
 input trim, output level and a global bypass. No effect algorithm exists yet. Nothing in this
 build reproduces, or claims to reproduce, the sound of the original unit.
 
 ## Layers
 
 ```
- Host (DAW / standalone)
+ Host (DAW)
    │  juce::AudioBuffer, parameters, state blobs
    ▼
  PluginProcessor            src/plugin      JUCE adapter: buses, parameters (APVTS), state, editor
@@ -22,7 +22,7 @@ build reproduces, or claims to reproduce, the sound of the original unit.
 - **`a5_engine`** (static library): `A5Processor`, `AudioBufferView`, `ParameterSnapshot`,
   `ParameterIds.h`, `src/dsp/*`. It has no JUCE dependency so it can be tested without a host and
   wrapped by another plugin format (CLAP) later without changing DSP code (plan §4).
-- **`A5Plugin`** (JUCE shared-code target, plus VST3, Standalone and, on macOS, AU wrappers):
+- **`A5Plugin`** (JUCE shared-code target, plus VST3 and, on macOS, AU wrappers):
   `PluginProcessor`, `PluginEditor`, `ParameterLayout`, `PresetState`, `src/ui/*`.
 
 `ParameterLayout.cpp` and `PresetState.cpp` live in `src/core` as the plan lays out, but depend on
