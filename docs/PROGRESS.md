@@ -8,7 +8,7 @@ versus assumed is in `docs/evidence-register.md`.
 
 | Milestone | Status | Notes |
 |-----------|--------|-------|
-| 0 Evidence and skeleton | Done (2026-10-04) | Pass-through plugin, versioned state, evidence register, CI on three platforms. Standalone not yet run with an audio device. |
+| 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: run the standalone once with an audio device. |
 | 1 Complete functional chain | Not started | |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
@@ -52,3 +52,5 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 ### 2026-10-05
 
 - Product renamed to Five-A MultiFX Processor (see Decisions), including bundle ID and state tag.
+- Pushed. CI green on all seven jobs (`ec6afd2`), including auval and pluginval on macOS and
+  pluginval on Windows: the first CI confirmation of the Linux fixes and the validators.

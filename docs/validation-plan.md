@@ -28,8 +28,8 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Gain accuracy and smoothing | `Gain settles at the requested level after the ramp`; `LinearSmoother` tests | Passing |
 | Bypass | `Global bypass returns to exact pass-through once its ramp ends`; bypass parameter exposed to hosts | Passing |
 | Editor | `The editor opens and closes` | Passing |
-| Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Run 1: macOS and Windows passed; Linux failed (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca`, verified in an Ubuntu 24.04 container |
-| Plugin validation | `auval -v aufx Nmf1 Ctcd`; pluginval strictness 10 on the VST3 and the AU | Passing locally (macOS); in CI for macOS (AU and VST3) and Windows (VST3) |
+| Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Passing: all jobs green on `ec6afd2` (macOS, Windows, Linux; Debug and Release). The first run failed on Linux (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca` |
+| Plugin validation | `auval -v aufx Nmf1 Ctcd`; pluginval strictness 10 on the VST3 and the AU | Passing locally (macOS) and in CI on `ec6afd2`: auval and pluginval on macOS, pluginval on Windows |
 | Standalone passes audio | Covered at the `processBlock` level above; the standalone application itself has not been run with an audio device | Manual check outstanding |
 
 ## Not yet covered (planned)
