@@ -58,8 +58,8 @@ endif()
 # --- Plugin -------------------------------------------------------------------
 # The manufacturer code is Catastrophic Audio's, shared with its other plugins; PLUGIN_CODE must be
 # unique among them. Changing either, or the bundle ID, after release breaks saved host sessions.
-# No standalone: the plugin is an effects unit for between an amp and a cabinet, and on its own it
-# would play a raw, unamplified guitar (owner's decision 2026-10-05).
+# No standalone: the plugin is an effects unit that goes in front of an amp, and on its own it would
+# play a raw, unamplified guitar (owner's decision 2026-10-05).
 set(A5_PLUGIN_FORMATS VST3)
 if(APPLE)
     list(APPEND A5_PLUGIN_FORMATS AU)

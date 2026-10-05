@@ -36,6 +36,7 @@ primary citation pending". No row has yet been checked against a primary documen
 | EV-009 | Programs: 6 banks × 5 programs; bank 1 user-writable, banks 2–6 hold 25 factory programs | CONFIRMED (citation pending) | SRC-000 §3.2 | None in M0 (Milestone 2). The plugin reports one program. | High per plan | — |
 | EV-010 | Factory program contents | Unknown | — | No factory presets are shipped. Development presets will be named as such (plan §3.2). | — | Exact values for all 25 programs. |
 | EV-011 | Original parameter labels, ranges and value mappings | Unknown | — | Not exposed. `parameter-specification.md` holds a template for transcription. | — | Needs SRC-001 parameter table. |
+| EV-012 | The original was used in front of a guitar amplifier | INFERRED | Owner's statement 2026-10-05; no document catalogued yet | Basis for EV-107. Consistent with the chain starting with a compressor and distortion, which act on a guitar's direct signal. | Medium (unsourced) | Confirm from the owner's manual's connection diagrams (SRC-001). The unit also has a headphone output (EV-004), so it may have been used without an amp too. |
 
 ## Plugin design decisions (no hardware claim)
 
@@ -47,7 +48,7 @@ primary citation pending". No row has yet been checked against a primary documen
 | EV-104 | Global bypass ramps gains to unity over the same 20 ms, then is bit-exact | PLACEHOLDER (design choice) | SRC-000 §15 | Bypass is click-free and exposed to hosts via `getBypassParameter()`. Zero latency, so no compensation is needed in M0. | — | Behaviour once blocks with latency (oversampling) exist. |
 | EV-105 | Effect enables default to off | PLACEHOLDER (design choice) | This project | A default of "on" would suggest an effect that does not exist yet. Revisit in Milestone 1. | — | — |
 | EV-106 | Processing at host sample rate (native mode) | PLACEHOLDER (design choice) | SRC-000 §6.2 | Engine is sample-rate aware; tested at 44.1, 48, 88.2, 96 and 192 kHz. | — | — |
-| EV-107 | Intended placement: between an amp (or amp sim) and a cabinet; mono in, stereo out; no standalone | PLACEHOLDER (design choice) | Owner's decision 2026-10-05 | No standalone target. Milestone 1 sets gain staging for post-amp, line-level input; the drive block will receive an amplified, possibly already distorted signal. Amp sims with a built-in cab need theirs switched off. | — | Where the original sat in a rig is not documented (it has a headphone output, EV-004); this row says nothing about it. |
+| EV-107 | Intended placement: in front of an amp (or amp sim): guitar → plugin → amp → cabinet; no standalone | PLACEHOLDER (design choice) | Owner's decision 2026-10-05 | No standalone target. Milestone 1 sets gain staging for an instrument-level guitar input and an output suited to an amp's input; the drive block works like a pedal driving the amp. Into a single amp, the L/Mono output is what is heard, so the L/Mono routing mode (plan §3.3) matters. | — | — |
 
 ## Change log
 

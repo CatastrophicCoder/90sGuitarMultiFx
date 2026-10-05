@@ -145,7 +145,7 @@ Initial plugin formats:
 - VST3
 - Audio Unit on macOS
 
-(amended 2026-10-05: no standalone; the plugin sits between an amp and a cabinet and has no use on its own)
+(amended 2026-10-05: no standalone; the plugin goes in front of an amp, as the original was used, and has no use on its own)
 
 Architect the project so CLAP can be added later without changing DSP internals.
 
@@ -993,7 +993,7 @@ CI jobs:
 5. run integration tests
 6. run formatting check
 7. run static analysis where available
-8. package the plugins for testing (amended 2026-10-05: no standalone; the plugin sits between an amp and a cabinet and has no use on its own)
+8. package the plugins for testing (amended 2026-10-05: no standalone; the plugin goes in front of an amp, as the original was used, and has no use on its own)
 9. retain test reports
 
 Do not add code-signing or notarization secrets at this stage.
@@ -1008,7 +1008,7 @@ Deliver:
 
 - repository skeleton
 - CMake project
-- JUCE plugin targets (amended 2026-10-05: no standalone; the plugin sits between an amp and a cabinet and has no use on its own)
+- JUCE plugin targets (amended 2026-10-05: no standalone; the plugin goes in front of an amp, as the original was used, and has no use on its own)
 - empty A5Processor
 - evidence register
 - architecture document
@@ -1019,7 +1019,7 @@ Deliver:
 Acceptance:
 
 - project builds on supported platforms
-- plugin passes audio in a host (amended 2026-10-05: no standalone; the plugin sits between an amp and a cabinet and has no use on its own)
+- plugin passes audio in a host (amended 2026-10-05: no standalone; the plugin goes in front of an amp, as the original was used, and has no use on its own)
 - plugin state can save and restore a version number
 - no DSP behavior is falsely described as authentic
 

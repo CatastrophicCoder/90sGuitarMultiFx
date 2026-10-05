@@ -8,11 +8,13 @@ Five-A MultiFX Processor by Catastrophic Audio: a guitar multi-effect plugin (AU
 whose architecture and workflow are inspired by the red Korg A5 Guitar performance
 signal processor. Built with JUCE and C++20 in CLion. Public repo, licensed AGPLv3.
 
-**Intended use: between an amp (or amp sim) and a cabinet.** The plugin is the effects unit only.
-It contains no amp and no cabinet, is not meant to be heard on its own, and therefore has no
-standalone target. Design the effects for post-amp, line-level input: the drive block receives an
-already amplified signal. This is a design decision (evidence register EV-107), not a claim about
-how the original unit was used.
+**Intended use: in front of an amp (or amp sim), as the original was used.** Guitar → this plugin
+→ amp → cabinet. The plugin is the effects unit only: it contains no amp and no cabinet, is not
+meant to be heard on its own, and therefore has no standalone target. Design the effects for a
+guitar's instrument-level signal, with an output level suited to an amp's input: the drive block
+works like a pedal, driving the amp. A single amp is mono, so the L/Mono output matters
+(plan §3.3). The placement is a design decision (evidence register EV-107); that the original was
+used this way is my statement, not yet backed by a catalogued source (EV-012).
 
 Read these at the start of every session:
 
@@ -178,4 +180,5 @@ Record each decision in `docs/PROGRESS.md` once I make it, then move it out of t
 - Naming the original unit ("Korg A5") in the README and docs. The plan does so, as a statement of
   inspiration; the eq project avoids other companies' names entirely.
 - Primary sources: which documents (owner's manual, service manual) back the plan's CONFIRMED
-  claims, so they can be catalogued in `docs/source-register.md`.
+  claims and the in-front-of-the-amp use (EV-012), so they can be catalogued in
+  `docs/source-register.md`.
