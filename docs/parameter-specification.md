@@ -137,7 +137,7 @@ Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProf
 
 | Control | Mapping |
 |---------|---------|
-| Compressor SENS 0–15 | Threshold −6 dBFS at 0, −3 dB per step (−51 dBFS at 15); ratio 8:1, knee 6 dB |
+| Compressor SENS 0–15 | Threshold −6 dBFS at 0, −3 dB per step (−51 dBFS at 15); ratio 8:1, knee 6 dB; feed-forward peak compressor linked across channels (EV-111) |
 | Compressor ATTACK 0–7 | 50, 30, 20, 12, 8, 5, 3, 1 ms; release fixed at 250 ms |
 | LEVEL, MASTER 0–15 | 0 = silent; otherwise 2 dB per step, unity at 12 (+6 dB at 15) |
 | DIST/OD DRIVE 0–15 | Pre-gain: Overdrive 0 dB + 2 dB/step; Distortion 10 dB + 3 dB/step |

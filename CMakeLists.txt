@@ -43,6 +43,7 @@ add_library(fivea_engine STATIC
     src/core/FiveAProcessor.cpp
     src/core/StepMapping.cpp
     src/dsp/Biquad.cpp
+    src/dsp/Compressor.cpp
     src/dsp/ThreeBandEq.cpp)
 
 target_include_directories(fivea_engine PUBLIC src)

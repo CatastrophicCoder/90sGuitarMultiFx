@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | In progress | Steps 1–2 of 9 done (2026-10-05): infrastructure; 3 Band EQ. |
+| 1 Complete functional chain | In progress | Steps 1–3 of 9 done (2026-10-05): infrastructure; 3 Band EQ; compressor. |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -101,3 +101,9 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   unsmoothed), and a new test checks every design against the cookbook's analog prototypes, which
   catches Q and slope mistakes the self-consistent response test cannot. A planned "skip flat
   bands" special case was dropped: the designs are exact identities at 0 dB.
+- M1 step 3: compressor (feed-forward peak, linked, gain computer in dB, smooth branching
+  detector; Giannoulis et al. 2012). 65 tests; seven checked by breaking the code. One breakage
+  (LEVEL without its ramp) first went uncaught because the test changed LEVEL at a sine zero
+  crossing, where a gain jump leaves no trace; the compressor and EQ click tests now change at
+  sine peaks, and their bounds were re-measured (EQ 0.049 vs 0.61 → bound 0.15; compressor
+  0.0001 vs 0.096 → bound 0.005).

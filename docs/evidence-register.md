@@ -63,12 +63,14 @@ system; per plan §13 they are not turned into filters, noise or bit reduction.
 | EV-108 | Effect on/off switching fades over 10 ms, linear | PLACEHOLDER (design choice) | Plan §15 | `dsp/BypassCrossfade.h`, length from `SwitchingProfile`. A block keeps running while it fades out. | — | Whether the original unit cuts, ramps or keeps tails when an effect is switched (EV-002). |
 | EV-109 | Step-to-value mappings for every documented control (dB per EQ step, SENS → threshold, ATTACK → ms, DRIVE → gain, TONE → cutoff, SPEED → Hz, DEPTH → ms, F.BACK → feedback, LEVEL/MASTER/TRIM → gain, MIX curve between its documented end points, NR LEVEL → threshold) | PLACEHOLDER | This project; values in `src/core/ModelProfile.h` | All in one profile (`functionalPlaceholderProfile`); a measured profile replaces them without code changes. Only their direction is tested, from the manual's wording. | Low (values) | Every value, by measurement (Milestone 5). |
 | EV-110 | EQ filter shapes: BASS low shelf, MID peaking, TREBLE high shelf (RBJ Audio EQ Cookbook, bilinear transform); shelf slope 1, mid Q 0.7 | PLACEHOLDER | Frequencies documented (EV-021); shapes, slope and Q are this project's choice | `dsp/Biquad`, `dsp/ThreeBandEq`. Gains and MID FREQ ramp over 20 ms; coefficients redesigned every 16 samples while ramping. | — | Shelf or peak for BASS and TREBLE, Q, dB per step: measure each control at min, centre and max (plan §10.3). |
+| EV-111 | Compressor algorithm: feed-forward, no lookahead, peak level linked across channels, gain computer in dB with fixed ratio and soft knee, smooth branching detector on the gain reduction (Giannoulis, Massberg & Reiss 2012) | PLACEHOLDER | Controls documented (EV-022); the algorithm is this project's choice | `dsp/Compressor`. Detector type kept replaceable (plan §8.1); only Peak exists. | — | Static curve, attack and release behaviour, detector type, whether the original links anything (it is mono until the DSP, EV-005): measure (plan §8.2). |
 
 ## Change log
 
 | Date | Change |
 |------|--------|
 | 2026-10-04 | Register created for Milestone 0. All CONFIRMED rows taken from the plan, pending primary citations. |
+| 2026-10-05 | M1 step 3: EV-111 (compressor algorithm) added. |
 | 2026-10-05 | M1 step 2: EV-110 (EQ filter shapes) added. |
 | 2026-10-05 | M1 step 1: EV-108 (switching crossfade) and EV-109 (placeholder step mappings) added. |
 | 2026-10-05 | Owner's manual (SRC-001) and service manual (SRC-002) catalogued. EV-001–012 re-cited to primary sources; EV-012 upgraded from INFERRED to CONFIRMED; EV-013–023 added. |

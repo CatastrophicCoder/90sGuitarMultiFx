@@ -233,10 +233,15 @@ TEST_CASE("An EQ flat since reset, with TRIM at its top, passes audio through bi
 
 namespace
 {
-// Click bound on the largest second difference, for a 0.25-amplitude 50 Hz sine. Measured
-// 2026-10-05 with the stepped changes below: 0.017–0.026 with the 20 ms ramp, 0.29–0.35 with the
-// ramp removed (instant coefficient changes). Do not raise it without asking.
-constexpr double clickBound = 0.08;
+// Click bound on the largest second difference, for a 0.25-amplitude 50 Hz sine with the changes
+// at sine peaks (a change at a zero crossing hides a gain jump). Measured 2026-10-05 with the
+// stepped changes below: 0.049 with the 20 ms ramp, 0.61 with the ramp removed. Do not raise it
+// without asking.
+constexpr double clickBound = 0.15;
+
+// 50 Hz at 48 kHz peaks every 960 samples, at 240 + k × 960.
+constexpr int firstPeakAfterQuarter = 12240;
+constexpr int firstPeakAfterHalf = 24240;
 } // namespace
 
 TEST_CASE("Stepped changes do not click")
@@ -247,13 +252,12 @@ TEST_CASE("Stepped changes do not click")
     PlanarBuffer buffer{1, static_cast<int>(sampleRate)};
     fivea::test::fillSine(buffer, 50.0, sampleRate, 0.25f);
 
-    // Jump every control from one end to the other, twice, mid-stream.
-    const int quarter = buffer.getNumSamples() / 4;
-    eq.process(buffer.viewOf(0, quarter));
+    // Jump every control from one end to the other, twice, mid-stream, at sine peaks.
+    eq.process(buffer.viewOf(0, firstPeakAfterQuarter));
     eq.setSettings({.bass = 7, .midFrequency = 8, .mid = 7, .treble = 7, .trim = 9});
-    eq.process(buffer.viewOf(quarter, quarter));
+    eq.process(buffer.viewOf(firstPeakAfterQuarter, firstPeakAfterHalf - firstPeakAfterQuarter));
     eq.setSettings({.bass = -7, .midFrequency = 1, .mid = -7, .treble = -7, .trim = 15});
-    eq.process(buffer.viewOf(2 * quarter, buffer.getNumSamples() - 2 * quarter));
+    eq.process(buffer.viewOf(firstPeakAfterHalf, buffer.getNumSamples() - firstPeakAfterHalf));
 
     CHECK(fivea::test::largestSecondDifference(buffer, 0) < clickBound);
     CHECK(fivea::test::allFinite(buffer));
@@ -268,10 +272,10 @@ TEST_CASE("Returning to flat ends without a click, and the EQ is then transparen
     fivea::test::fillSine(buffer, 50.0, sampleRate, 0.25f);
     const auto input = buffer.data();
 
-    const int half = buffer.getNumSamples() / 2;
-    eq.process(buffer.viewOf(0, half));
+    const int change = 48240; // a sine peak
+    eq.process(buffer.viewOf(0, change));
     eq.setSettings({});
-    eq.process(buffer.viewOf(half, half));
+    eq.process(buffer.viewOf(change, buffer.getNumSamples() - change));
 
     CHECK(fivea::test::largestSecondDifference(buffer, 0) < clickBound);
 

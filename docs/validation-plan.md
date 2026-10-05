@@ -32,6 +32,7 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Documented values come out exactly | `StepMappingTests.cpp`: EQ frequencies, chorus/flanger delays, delay times and maxima, MIX end points, mode clamping | Passing (M1 step 1) |
 | Placeholder mappings | Direction from the manual's wording, symmetry, finiteness over and beyond the range | Passing (M1 step 1) |
 | 3 Band EQ (plan §10.2) | `ThreeBandEqTests.cpp`: designs equal the cookbook's analog prototypes under the bilinear transform (1e-6 dB); shelf plateau and corner gains; peak gain at each documented MID FREQ; cut mirrors boost; measured response matches the design within 0.1 dB at 44.1–192 kHz; TRIM; bit-exact when flat since reset; no click on stepped changes (second-difference bound with measured margins); return to flat; block-size invariance; finite at extreme settings; no allocation | Passing (M1 step 2) |
+| Compressor (plan §8.2) | `CompressorTests.cpp`: bit-exact below threshold at LEVEL 12; settled output on the static curve (0.01 dB) for four SENS values; ratio; attack time constant per ATTACK step at 44.1–192 kHz; release time constant; linked channels; no click on a LEVEL step (bound from measurement, change at a sine peak); silence, extreme levels and settings finite; block-size invariance; no allocation | Passing (M1 step 3) |
 | Switching crossfade, denormals | `BypassCrossfadeTests.cpp`, `DenormalGuardTests.cpp` | Passing (M1 step 1) |
 | Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Passing: all jobs green on `ec6afd2` (macOS, Windows, Linux; Debug and Release). The first run failed on Linux (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca` |
 | Plugin validation | `auval -v aufx Nmf1 Ctcd`; pluginval strictness 10 on the VST3 and the AU | Passing locally (macOS) and in CI on `ec6afd2`: auval and pluginval on macOS, pluginval on Windows |
@@ -42,7 +43,7 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Property | Plan | Milestone |
 |----------|------|-----------|
 | All 32 on/off combinations of the five blocks | §19.2 | 1 |
-| Per-block unit tests (compressor, drive, modulation, time effects) | §8.2, §11.5, §19.1 | 1 |
+| Per-block unit tests (drive, modulation, time effects) | §8.2, §11.5, §19.1 | 1 |
 | Program changes while running, crossfades | §19.2 | 2 |
 | Sample-rate changes during a session, offline vs real-time consistency | §19.2 | 1–3 |
 | Golden renders with tolerances | §19.3 | 1 |
