@@ -57,6 +57,17 @@ public:
         return current;
     }
 
+    // Advances by numSamples and returns the value reached; lands exactly on the target like
+    // getNextValue().
+    float skip(int numSamples) noexcept
+    {
+        float value = getCurrent();
+        for (int n = 0; n < numSamples && isSmoothing(); ++n)
+            value = getNextValue();
+        return value;
+    }
+
+    [[nodiscard]] float getCurrent() const noexcept { return isSmoothing() ? current : target; }
     [[nodiscard]] bool isSmoothing() const noexcept { return samplesRemaining > 0; }
     [[nodiscard]] float getTarget() const noexcept { return target; }
 

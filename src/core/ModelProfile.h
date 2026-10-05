@@ -107,6 +107,7 @@ struct EqProfile
 {
     float dbPerStep = 1.5f;
     float midQ = 0.7f;
+    float shelfSlope = 1.0f;    // RBJ shelf slope S; 1 = steepest without overshoot
     float trimDbPerStep = 1.5f; // TRIM 15 = unity; lower steps attenuate ("lower the TRIM" to avoid clipping)
 };
 
@@ -140,6 +141,7 @@ struct NoiseReductionProfile
 struct SwitchingProfile
 {
     double effectCrossfadeSeconds = 0.01;
+    double parameterRampSeconds = 0.02; // stepped controls ramp, so a step does not click
 };
 
 struct FiveAModelProfile

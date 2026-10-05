@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | In progress | Step 1 of 9 done (2026-10-05): model profile, step mappings, switching crossfade, denormal guard, allocation test. |
+| 1 Complete functional chain | In progress | Steps 1–2 of 9 done (2026-10-05): infrastructure; 3 Band EQ. |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -94,3 +94,10 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   (documented step → algorithm value), `BypassCrossfade`, engine-side `DenormalGuard`, and an
   allocation-counting test harness. 41 tests; four of the new ones checked by breaking the code
   they guard (a documented delay, flush-to-zero, an allocation in `process()`, the crossfade).
+- M1 step 2: 3 Band EQ (TRIM → low shelf 100 Hz → peaking at the MID FREQ table → high shelf
+  3 kHz), RBJ cookbook designs in double precision, 20 ms ramps with coefficients redesigned every
+  16 samples. 55 tests. Breaking the code exposed three weak tests, all fixed: the click test now
+  uses the second difference with a bound set from measurement (0.017–0.026 smoothed vs 0.29–0.35
+  unsmoothed), and a new test checks every design against the cookbook's analog prototypes, which
+  catches Q and slope mistakes the self-consistent response test cannot. A planned "skip flat
+  bands" special case was dropped: the designs are exact identities at 0 dB.

@@ -1,3 +1,5 @@
+#include "TestSignals.h"
+
 #include "core/FiveAProcessor.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -15,68 +17,13 @@ using namespace fivea;
 namespace
 {
 
-// Planar test signal with a fixed seed, so every run sees the same input.
-class TestBuffer
-{
-public:
-    TestBuffer(int numChannels, int numSamples)
-        : samples(static_cast<std::size_t>(numChannels), std::vector<float>(static_cast<std::size_t>(numSamples)))
-        , pointers(static_cast<std::size_t>(numChannels))
-    {
-        for (std::size_t channel = 0; channel < samples.size(); ++channel)
-            pointers[channel] = samples[channel].data();
-    }
-
-    void fillWithNoise(unsigned int seed)
-    {
-        std::mt19937 generator{seed};
-        std::uniform_real_distribution<float> distribution{-1.0f, 1.0f};
-
-        for (auto& channel : samples)
-            for (auto& sample : channel)
-                sample = distribution(generator);
-    }
-
-    void fill(float value)
-    {
-        for (auto& channel : samples)
-            std::fill(channel.begin(), channel.end(), value);
-    }
-
-    [[nodiscard]] AudioBufferView view() { return viewOf(0, getNumSamples()); }
-
-    [[nodiscard]] AudioBufferView viewOf(int startSample, int numSamples)
-    {
-        offsetPointers.resize(pointers.size());
-        for (std::size_t channel = 0; channel < pointers.size(); ++channel)
-            offsetPointers[channel] = pointers[channel] + startSample;
-
-        return {offsetPointers.data(), static_cast<int>(pointers.size()), numSamples};
-    }
-
-    [[nodiscard]] int getNumSamples() const { return static_cast<int>(samples.front().size()); }
-    [[nodiscard]] const std::vector<std::vector<float>>& data() const { return samples; }
-
-private:
-    std::vector<std::vector<float>> samples;
-    std::vector<float*> pointers;
-    std::vector<float*> offsetPointers;
-};
+using TestBuffer = fivea::test::PlanarBuffer;
+using fivea::test::allFinite;
 
 void processInBlocks(FiveAProcessor& processor, TestBuffer& buffer, int blockSize)
 {
     for (int start = 0; start < buffer.getNumSamples(); start += blockSize)
         processor.process(buffer.viewOf(start, std::min(blockSize, buffer.getNumSamples() - start)));
-}
-
-bool allFinite(const TestBuffer& buffer)
-{
-    for (const auto& channel : buffer.data())
-        for (const float sample : channel)
-            if (!std::isfinite(sample))
-                return false;
-
-    return true;
 }
 
 } // namespace

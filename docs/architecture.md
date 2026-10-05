@@ -108,7 +108,8 @@ attributes in Milestone 2 under a schema-version bump only if the change is not 
 | Item | Reason |
 |------|--------|
 | Added `src/core/AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h` | Types and declarations the plan's interface sketch (§6.1) needs. |
-| Not yet created: `Compressor`, `Drive`, `ThreeBandEq`, `Modulation`, `TimeEffects`, `DelayLine` | Milestone 1, steps 2–6. |
+| Not yet created: `Compressor`, `Drive`, `Modulation`, `TimeEffects`, `DelayLine` | Milestone 1, steps 3–6. |
+| Added in M1 step 2: `src/dsp/Biquad.h/.cpp`, `src/dsp/ThreeBandEq.h/.cpp` | `ThreeBandEq` per plan §5; `Biquad` holds the cookbook designs and the filter they run in, shared with later blocks. |
 | Not created: `FixedPoint` | Plan §13: disabled until evidence supports a configuration; not needed for Milestone 1. |
 | Added in M1 step 1: `src/core/ModelProfile.h`, `src/core/StepMapping.h/.cpp`, `src/dsp/BypassCrossfade.h`, `src/dsp/DenormalGuard.h` | Plan §14 (one profile for hardware values) and §7.3 (documented step → algorithm value); §15 switching; denormals inside the JUCE-free engine. |
 | Not yet created: `src/ui/ProgramDisplay` | Bank/program workflow is Milestone 2. |

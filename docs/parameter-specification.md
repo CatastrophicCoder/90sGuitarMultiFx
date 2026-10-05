@@ -142,7 +142,7 @@ Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProf
 | LEVEL, MASTER 0–15 | 0 = silent; otherwise 2 dB per step, unity at 12 (+6 dB at 15) |
 | DIST/OD DRIVE 0–15 | Pre-gain: Overdrive 0 dB + 2 dB/step; Distortion 10 dB + 3 dB/step |
 | DIST/OD TONE 0–15 | Low-pass cutoff 1–8 kHz, log-spaced |
-| EQ BASS, MID, TREBLE −7…+7 | 1.5 dB per step (±10.5 dB); mid Q 0.7 |
+| EQ BASS, MID, TREBLE −7…+7 | 1.5 dB per step (±10.5 dB); BASS low shelf and TREBLE high shelf with slope 1, MID peaking with Q 0.7 (EV-110) |
 | EQ MID FREQ 1–8 | **Documented** frequency table |
 | EQ TRIM 0–15 | Unity at 15, −1.5 dB per step below |
 | Chorus/Flanger base delay | **Documented** per mode |
