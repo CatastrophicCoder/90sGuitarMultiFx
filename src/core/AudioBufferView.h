@@ -11,6 +11,7 @@ struct ProcessSpec
     double sampleRate = 44100.0;
     int maximumBlockSize = 0;
     int numChannels = 0;
+    int driveOversampling = 1; // 1, 2 or 4: fixed per prepare, since it sets the latency (plan §9.2)
 };
 
 // Non-owning view of planar audio, so the engine never depends on a host's buffer class. The

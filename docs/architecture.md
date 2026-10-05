@@ -1,8 +1,8 @@
 # Architecture
 
-State at **Milestone 0**: a buildable plugin (VST3, and AU on macOS) that passes audio through with
-input trim, output level and a global bypass. No effect algorithm exists yet. Nothing in this
-build reproduces, or claims to reproduce, the sound of the original unit.
+State during **Milestone 1**: the full effect chain runs in the plugin (VST3, and AU on macOS),
+with every documented control as a host parameter. Every algorithm is a placeholder; nothing in
+this build reproduces, or claims to reproduce, the sound of the original unit.
 
 ## Layers
 
@@ -15,8 +15,8 @@ build reproduces, or claims to reproduce, the sound of the original unit.
    │  AudioBufferView   (non-owning channel pointers)
    ▼
  FiveAProcessor                src/core        Engine façade. Pure C++20, no JUCE.
-   input trim → [Compressor → Drive → EQ → Chorus/Flanger → Reverb/Delay] → output level
-                 (Milestone 1; the documented order, EV-001)
+   input trim → NR → Compressor → Drive → EQ → Chorus/Flanger → Reverb/Delay → MASTER → output level
+               (the documented order, EV-001; NR and MASTER placed as placeholders, EV-117)
 ```
 
 - **`fivea_engine`** (static library): `FiveAProcessor`, `AudioBufferView`, `ParameterSnapshot`,
@@ -44,6 +44,17 @@ model either chip.
 
 Parameters reach the audio thread only through JUCE's per-parameter `std::atomic<float>`; there is
 no shared mutable state between the editor and the engine.
+
+## Switching, bypass and latency
+
+- Each effect has a 10 ms crossfade (EV-108). A switched-off effect is not run, and is reset when
+  its fade-out ends. Switching on, the chorus/flanger's and reverb/delay's input fades in as well.
+- Global bypass crossfades to the dry input (EV-104).
+- Oversampling the drive adds 69 (2×) or 76 (4×) samples of latency. The drive's bypass path and
+  the global bypass path are delayed by the same amount, so the reported latency is constant.
+- The oversampling setting is applied at prepare time; a change while running is applied on the
+  message thread with processing suspended, and the host is told the new latency.
+- The engine processes in chunks of its announced block size, so longer host blocks are safe.
 
 ## Signal handling at the boundary
 

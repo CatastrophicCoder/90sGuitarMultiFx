@@ -5,11 +5,13 @@ add_executable(fivea_engine_tests
     Unit/AllocationGuard.cpp
     Unit/AllocationTests.cpp
     Unit/BypassCrossfadeTests.cpp
+    Unit/ChainTests.cpp
     Unit/CompressorTests.cpp
     Unit/DenormalGuardTests.cpp
     Unit/DriveTests.cpp
     Unit/FiveAProcessorTests.cpp
     Unit/ModulationTests.cpp
+    Unit/NoiseReductionTests.cpp
     Unit/OversamplerTests.cpp
     Unit/SmoothingTests.cpp
     Unit/StepMappingTests.cpp

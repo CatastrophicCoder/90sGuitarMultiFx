@@ -172,10 +172,16 @@ struct ReverbProfile
     float echoverbReverbGain = 0.7f; // … plus a reverb of the dry signal and the echoes
 };
 
+// NR LEVEL is documented only as a noise-reduction threshold, "the larger this value, the higher
+// the amount of noise reduction" (SRC-001 p. 12); the algorithm is a placeholder (EV-117).
 struct NoiseReductionProfile
 {
     float thresholdAtStepOneDb = -90.0f;
     float thresholdDbPerStep = 3.0f;
+    float expansionRatio = 4.0f; // downward expander below the threshold
+    float maximumReductionDb = 80.0f;
+    float attackMs = 1.0f;   // opening, when the guitar is played
+    float releaseMs = 80.0f; // closing, as a note dies away
 };
 
 // Plugin design choice (plan §15): how fast an effect fades in or out when switched.

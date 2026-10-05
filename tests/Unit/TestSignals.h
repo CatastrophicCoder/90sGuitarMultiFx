@@ -20,11 +20,8 @@ class PlanarBuffer
 public:
     PlanarBuffer(int numChannels, int numSamples)
         : samples(static_cast<std::size_t>(numChannels), std::vector<float>(static_cast<std::size_t>(numSamples)))
-        , pointers(static_cast<std::size_t>(numChannels))
         , offsetPointers(static_cast<std::size_t>(numChannels)) // sized here, so viewOf() never allocates
     {
-        for (std::size_t channel = 0; channel < samples.size(); ++channel)
-            pointers[channel] = samples[channel].data();
     }
 
     void fillWithNoise(unsigned int seed)
@@ -45,13 +42,14 @@ public:
 
     [[nodiscard]] AudioBufferView view() { return viewOf(0, getNumSamples()); }
 
-    // The returned view shares storage with the previous one: use one at a time.
+    // The returned view shares storage with the previous one: use one at a time. Pointers are
+    // taken from this buffer's own samples every time, so a copied buffer views its own data.
     [[nodiscard]] AudioBufferView viewOf(int startSample, int numSamples)
     {
-        for (std::size_t channel = 0; channel < pointers.size(); ++channel)
-            offsetPointers[channel] = pointers[channel] + startSample;
+        for (std::size_t channel = 0; channel < samples.size(); ++channel)
+            offsetPointers[channel] = samples[channel].data() + startSample;
 
-        return {offsetPointers.data(), static_cast<int>(pointers.size()), numSamples};
+        return {offsetPointers.data(), static_cast<int>(samples.size()), numSamples};
     }
 
     [[nodiscard]] int getNumChannels() const { return static_cast<int>(samples.size()); }
@@ -61,7 +59,6 @@ public:
 
 private:
     std::vector<std::vector<float>> samples;
-    std::vector<float*> pointers;
     std::vector<float*> offsetPointers;
 };
 

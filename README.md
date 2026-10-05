@@ -3,10 +3,12 @@
 A guitar multi-effect plugin whose architecture and workflow are modelled on an early-1990s
 guitar multi-effect floor unit, referred to here as "the original unit".
 
-**Status: Milestone 0.** The project builds VST3 and (on macOS) Audio Unit plugins
-that pass audio through with input trim, output level and bypass. **There are no effects yet**, and
-nothing in this build reproduces the sound of the original unit. See `docs/implementation-plan.md`
-for the roadmap and `docs/evidence-register.md` for what is known versus assumed.
+**Status: Milestone 1 in progress.** VST3 and (on macOS) Audio Unit plugins with the original
+unit's five-effect chain (compressor, distortion/overdrive, 3-band EQ, chorus/flanger,
+reverb/delay), noise reduction and master volume, each control with its original steps. **Every
+algorithm is a placeholder:** the controls and their documented values match the original, the
+sound does not claim to. The editor is still a basic one. See `docs/implementation-plan.md` for the
+roadmap and `docs/evidence-register.md` for what is known versus assumed.
 
 ## Requirements
 

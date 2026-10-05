@@ -159,10 +159,34 @@ Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProf
 
 Out-of-range steps are clamped to the documented range.
 
+## Host parameters (Milestone 1)
+
+Every documented control is a stepped host parameter holding the control's own steps
+(`src/core/ParameterIds.h`, `src/core/ParameterLayout.cpp`). MODE controls are choice lists named
+as in the manual; their index counts from 0, the documented mode from 1. All at version hint 1
+(nothing released yet).
+
+| ID | Control | Range | Default |
+|----|---------|-------|---------|
+| `compSens`, `compAttack`, `compLevel` | Compressor SENS, ATTACK, LEVEL | 0–15, 0–7, 0–15 | 8, 4, 12 |
+| `driveMode` | Dist/OD MODE | Distortion, Overdrive | Overdrive |
+| `driveDrive`, `driveTone`, `driveLevel` | Dist/OD DRIVE, TONE, LEVEL | 0–15 | 8, 8, 12 |
+| `eqBass`, `eqMid`, `eqTreble` | EQ BASS, MID, TREBLE | −7…+7 | 0 |
+| `eqMidFreq` | EQ MID FREQ (shown in Hz) | 1–8 | 3 (800 Hz) |
+| `eqTrim` | EQ TRIM | 0–15 | 15 |
+| `modMode` | Chorus/FL MODE | Flanger 1, Flanger 2, Chorus 1, Chorus 2, Slapback | Chorus 1 |
+| `modSpeed`, `modDepth`, `modFeedback`, `modMix` | Chorus/FL SPEED, DEPTH, F.BACK, MIX | 0–15 | 5, 8, 0, 8 |
+| `revMode` | Rev/Delay MODE | Hall, Ensemble Hall, Room, Plate, Live Stage Reverb, Echoverb, Delay | Hall Reverb |
+| `revTime`, `revFine` | Rev/Delay TIME, FINE | 0–4, 0–9 (TIME clamped to 3 in Echoverb) | 3, 0 |
+| `revFeedback`, `revMix` | Rev/Delay F.BACK, MIX | 0–15 | 4, 8 |
+| `nrLevel`, `master` | Utility NR LEVEL, MASTER | 0–15 | 0 (off), 12 (unity) |
+| `driveOversampling` | Plugin setting, not automatable | Off, 2x, 4x | Off |
+
+Defaults are placeholders: the manual documents no "initial" values.
+
 ## Mapping template
 
 | Block | Documented label | Documented range / values | Source (SRC-nnn p.) | Status | Plugin ID | Normalised mapping | Algorithm parameter and unit | Mapping status | Notes |
 |-------|------------------|---------------------------|---------------------|--------|-----------|--------------------|------------------------------|----------------|-------|
 | *e.g. Compressor* | *as printed* | *as printed* | | CONFIRMED / INFERRED | | *linear / table* | | PLACEHOLDER / MEASURED | |
 
-Filled in Milestone 1 once the plugin's parameters follow the documented set.

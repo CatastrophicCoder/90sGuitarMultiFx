@@ -34,6 +34,7 @@ public:
     [[nodiscard]] float getNextWetGain() noexcept { return wetGain.getNextValue(); }
 
     [[nodiscard]] bool isRamping() const noexcept { return wetGain.isSmoothing(); }
+    [[nodiscard]] bool isEnabled() const noexcept { return enabled; } // the state it is heading for
     [[nodiscard]] bool isBypassed() const noexcept { return !enabled && !isRamping(); }
     [[nodiscard]] bool isFullyEnabled() const noexcept { return enabled && !isRamping(); }
 

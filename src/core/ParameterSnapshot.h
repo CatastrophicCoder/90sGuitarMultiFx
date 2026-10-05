@@ -1,5 +1,11 @@
 #pragma once
 
+#include "dsp/Compressor.h"
+#include "dsp/Drive.h"
+#include "dsp/Modulation.h"
+#include "dsp/ThreeBandEq.h"
+#include "dsp/TimeEffects.h"
+
 #include <array>
 #include <cstddef>
 
@@ -18,14 +24,23 @@ enum class EffectBlock : std::size_t
 
 inline constexpr std::size_t numEffectBlocks = 5;
 
-// Plain values in internal units, copied by value into the audio thread once per block. Holding no
-// pointers or strings keeps the copy allocation-free.
+// Every control, as plain values: the documented steps of the original unit's controls (SRC-001
+// pp. 7, 10–12) and the plugin's own gains. Copied by value into the audio thread once per block;
+// holding no pointers or strings keeps the copy allocation-free.
 struct ParameterSnapshot
 {
     float inputTrimDb = 0.0f;
     float outputLevelDb = 0.0f;
     bool globalBypass = false;
     std::array<bool, numEffectBlocks> effectEnabled{};
+
+    dsp::Compressor::Settings compressor;
+    dsp::Drive::Settings drive;
+    dsp::ThreeBandEq::Settings equaliser;
+    dsp::Modulation::Settings modulation;
+    dsp::TimeEffects::Settings timeEffects;
+    int noiseReductionLevel = 0; // Utility NR LEVEL: 0 is off
+    int master = 12;             // Utility MASTER: 12 is unity (placeholder mapping)
 
     [[nodiscard]] bool isEnabled(EffectBlock block) const noexcept
     {

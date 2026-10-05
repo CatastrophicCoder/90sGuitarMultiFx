@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | In progress | Steps 1–6 of 9 done (2026-10-05): all five effect blocks built and tested on their own; next the chain, plugin parameters and UI. |
+| 1 Complete functional chain | In progress | Steps 1–7 of 9 done (2026-10-05): all effects, the full chain and every documented control as a host parameter. Next: the replica panel (step 8), docs (step 9). |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -131,3 +131,12 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   Two test mistakes of mine were caught by their results (a reused output buffer fed back as
   input; an over-strict tail floor). 114 tests; breaking the code found the high-frequency
   damping untested, now covered. CPU 0.07–0.11 % of one core.
+- M1 step 7: noise reduction (placeholder expander), the full chain with per-effect crossfades,
+  latency compensation for oversampling, every documented control as a host parameter,
+  oversampling applied live with the latency reported. The 32-combination test builds the
+  documented order by hand from the blocks and compares bit for bit. Measuring switching found
+  the memory blocks replaying a step when switched on (10 667, 2 193); their input now fades in
+  (34, 66). Two test-side faults: copied test buffers still pointed at the original's samples
+  (made every combination fail), and a latency check on a 100 Hz sine was fooled by the drive's
+  phase shift. A macro with the old model name was caught and renamed. 133 tests; eight checked
+  by breaking the code; engine tests clean under ASan and UBSan.
