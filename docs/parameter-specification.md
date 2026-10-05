@@ -153,7 +153,8 @@ Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProf
 | DEPTH 0–15 | 0 to a per-mode maximum: 1.6, 3.6, 6, 6, 1 ms |
 | F.BACK 0–15 | 0 to 0.9 (Chorus/Flanger) or 0.85 (Delay), linear |
 | MIX 0–15 | Dry stays at unity; wet 0 → equal to dry, linear (end points **documented**) |
-| Delay TIME, FINE | **Documented**: TIME × 100 ms + FINE × 10 ms, TIME ≤ 3 (Echoverb) or 4 (Delay) |
+| Reverb/Delay MODE 1–7 | **Documented** types; modes 1–5 are fixed reverb voicings (EV-115), 6 Echoverb and 7 Delay (EV-116); a change crossfades the tail over 100 ms |
+| Delay TIME, FINE | **Documented**: TIME × 100 ms + FINE × 10 ms, TIME ≤ 3 (Echoverb) or 4 (Delay); a change crossfades between read positions over 20 ms |
 | NR LEVEL 0–15 | 0 = off; threshold −90 dBFS at 1, +3 dB per step |
 
 Out-of-range steps are clamped to the documented range.

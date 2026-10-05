@@ -48,6 +48,8 @@ add_library(fivea_engine STATIC
     src/dsp/Drive.cpp
     src/dsp/Modulation.cpp
     src/dsp/Oversampler.cpp
+    src/dsp/Reverb.cpp
+    src/dsp/TimeEffects.cpp
     src/dsp/ThreeBandEq.cpp)
 
 target_include_directories(fivea_engine PUBLIC src)

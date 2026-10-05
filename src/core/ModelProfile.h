@@ -144,6 +144,32 @@ struct ModulationProfile
 struct DelayProfile
 {
     float feedbackMaximum = 0.85f;
+    float feedbackToneHz = 5000.0f; // low-pass in the repeat path: each repeat a little darker
+};
+
+// One fixed reverb type. The original unit's reverb modes have no decay, size or tone controls
+// (SRC-001 p. 12), so each is a fixed voicing; all values are placeholders (EV-115).
+struct ReverbVoicing
+{
+    float decaySeconds;       // T60 at low frequencies
+    float highFrequencyRatio; // T60 at the top of the band ÷ T60 at low frequencies (< 1: darker tail)
+    float size;               // scales the network's delay lengths
+    float preDelayMs;
+    float diffusion; // input allpass gain
+};
+
+struct ReverbProfile
+{
+    // Hall, Ensemble Hall, Room, Plate, Live Stage (SRC-001 p. 12, modes 1–5).
+    std::array<ReverbVoicing, 5> voicings{{
+        {.decaySeconds = 2.4f, .highFrequencyRatio = 0.5f, .size = 1.0f, .preDelayMs = 20.0f, .diffusion = 0.6f},
+        {.decaySeconds = 3.0f, .highFrequencyRatio = 0.45f, .size = 1.2f, .preDelayMs = 30.0f, .diffusion = 0.65f},
+        {.decaySeconds = 0.8f, .highFrequencyRatio = 0.6f, .size = 0.4f, .preDelayMs = 5.0f, .diffusion = 0.6f},
+        {.decaySeconds = 1.8f, .highFrequencyRatio = 0.75f, .size = 0.6f, .preDelayMs = 0.0f, .diffusion = 0.7f},
+        {.decaySeconds = 1.4f, .highFrequencyRatio = 0.55f, .size = 0.8f, .preDelayMs = 12.0f, .diffusion = 0.6f},
+    }};
+    float echoverbDelayGain = 0.7f;  // Echoverb: echoes …
+    float echoverbReverbGain = 0.7f; // … plus a reverb of the dry signal and the echoes
 };
 
 struct NoiseReductionProfile
@@ -157,6 +183,7 @@ struct SwitchingProfile
 {
     double effectCrossfadeSeconds = 0.01;
     double parameterRampSeconds = 0.02; // stepped controls ramp, so a step does not click
+    double tailCrossfadeSeconds = 0.1;  // Reverb/Delay mode change: old tail fades as the new mode starts (plan §15)
 };
 
 struct FiveAModelProfile
@@ -187,6 +214,7 @@ struct FiveAModelProfile
     LevelProfile level;
     ModulationProfile modulation;
     DelayProfile delay;
+    ReverbProfile reverb;
     NoiseReductionProfile noiseReduction;
     SwitchingProfile switching;
 };

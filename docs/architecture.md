@@ -108,7 +108,7 @@ attributes in Milestone 2 under a schema-version bump only if the change is not 
 | Item | Reason |
 |------|--------|
 | Added `src/core/AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h` | Types and declarations the plan's interface sketch (§6.1) needs. |
-| Not yet created: `TimeEffects` | Milestone 1, step 6. |
+| Added in M1 step 6: `src/dsp/Reverb.h/.cpp`, `src/dsp/TimeEffects.h/.cpp` | Plan §5, §12, §15. |
 | Added in M1 step 5: `src/dsp/DelayLine.h/.cpp`, `src/dsp/Modulation.h/.cpp` | Plan §5, §11. `DelayLine` will also serve the delay and reverb. |
 | Added in M1 step 4: `src/dsp/Drive.h/.cpp`, `src/dsp/Waveshapers.h`, `src/dsp/Oversampler.h/.cpp` | Plan §5, §9. The plan's `DriveModel` interface is one class configured per mode by profile data; a measured model with a different structure would replace it behind the same calls. Oversampling factor is fixed at prepare time because it changes the latency (plan §9.2). |
 | Added in M1 step 3: `src/dsp/Compressor.h/.cpp` | Plan §5, §8. |

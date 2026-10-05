@@ -13,7 +13,8 @@ add_executable(fivea_engine_tests
     Unit/OversamplerTests.cpp
     Unit/SmoothingTests.cpp
     Unit/StepMappingTests.cpp
-    Unit/ThreeBandEqTests.cpp)
+    Unit/ThreeBandEqTests.cpp
+    Unit/TimeEffectsTests.cpp)
 
 target_link_libraries(fivea_engine_tests PRIVATE fivea_engine Catch2::Catch2WithMain)
 catch_discover_tests(fivea_engine_tests TEST_PREFIX "engine: ")

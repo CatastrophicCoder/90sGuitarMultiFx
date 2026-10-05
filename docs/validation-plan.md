@@ -36,6 +36,7 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Distortion/Overdrive (plan §9) | `DriveTests.cpp`: waveshapers bounded, continuous, never decreasing; latency 0/69/76; silence → silence; output bounded at maximum drive; more DRIVE → more harmonics (both modes); Distortion has even harmonics, Overdrive does not; no DC at the output; TONE brightens; oversampling cuts aliasing (measured 0.286 → 0.092 at 2× → 1.2e-5 at 4×); no click on MODE/DRIVE/TONE/LEVEL changes (ratio bound from measurement); MODE reversal mid-fade; all rates; block-size invariance; no allocation | Passing (M1 step 4) |
 | Oversampler | `OversamplerTests.cpp`: factor 1 pass-through; impulse comes out at the reported latency; passband error below 0.002 up to 18 kHz; aliasing at least 80 dB lower; channels independent; no allocation | Passing (M1 step 4) |
 | Chorus/Flanger (plan §11.5) | `ModulationTests.cpp`: delay line exact at whole samples, exact on a ramp, close on a sine, clamped; each MODE's delay equals the documented one (written out in the test) at 44.1/48/96 kHz, recovered sample by sample from a ramp input; cubic interpolation accuracy at 4 kHz (bound from measurement); DEPTH range and SPEED rate; right channel 90° ahead; mono in → stereo out; MIX 0 bit-exact dry; F.BACK repeats; maximum feedback bounded in every mode; no click on any change (ratio bound from measurement); silence, extremes, all rates; block-size invariance; no allocation | Passing (M1 step 5) |
+| Reverb/Delay (plan §12) | `TimeEffectsTests.cpp`: echoes exactly at TIME × 100 ms + FINE × 10 ms up to 490 ms; F.BACK repeat ratio; TIME/FINE/F.BACK inert in reverb modes; each voicing's low-frequency T60 within 5 % at 44.1/48/96 kHz; treble decays faster than bass (bound from measurement); L/R decorrelated; tails decay; Echoverb has echoes and reverb; MIX 0 bit-exact dry; no click on any change (43 Hz signal, bound from measurement); rapid MODE changes; extremes and all rates bounded; block-size invariance; no allocation | Passing (M1 step 6) |
 | Switching crossfade, denormals | `BypassCrossfadeTests.cpp`, `DenormalGuardTests.cpp` | Passing (M1 step 1) |
 | Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Passing: all jobs green on `ec6afd2` (macOS, Windows, Linux; Debug and Release). The first run failed on Linux (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca` |
 | Plugin validation | `auval -v aufx Nmf1 Ctcd`; pluginval strictness 10 on the VST3 and the AU | Passing locally (macOS) and in CI on `ec6afd2`: auval and pluginval on macOS, pluginval on Windows |
@@ -46,7 +47,6 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Property | Plan | Milestone |
 |----------|------|-----------|
 | All 32 on/off combinations of the five blocks | §19.2 | 1 |
-| Per-block unit tests (time effects) | §8.2, §11.5, §19.1 | 1 |
 | Program changes while running, crossfades | §19.2 | 2 |
 | Sample-rate changes during a session, offline vs real-time consistency | §19.2 | 1–3 |
 | Golden renders with tolerances | §19.3 | 1 |

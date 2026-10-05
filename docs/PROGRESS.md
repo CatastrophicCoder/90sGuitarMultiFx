@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | In progress | Steps 1–5 of 9 done (2026-10-05): infrastructure; 3 Band EQ; compressor; distortion/overdrive; chorus/flanger. |
+| 1 Complete functional chain | In progress | Steps 1–6 of 9 done (2026-10-05): all five effect blocks built and tested on their own; next the chain, plugin parameters and UI. |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -122,3 +122,12 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   feedback with the effect. Breaking the code showed the interpolation choice was only caught by
   accident; a deliberate 4 kHz accuracy test now separates cubic (0.28 %) from linear (3.8 %).
   100 tests.
+- M1 step 6: reverb/delay (FDN reverb with five voicings, documented delay times, Echoverb, tail
+  crossfade). Measured first: each voicing's decay within 3.5 % of its setting, L/R correlation
+  0.05–0.09. Measuring also found two real faults before any test was written: a one-sample
+  spike when a delay-time crossfade ended (the last sample read the old position), and clicks on
+  MODE changes (the incoming engine was fed mid-signal from silence; its input now fades in). The
+  50 Hz test signal could hide delay changes that are whole numbers of its period; 43 Hz cannot.
+  Two test mistakes of mine were caught by their results (a reused output buffer fed back as
+  input; an over-strict tail floor). 114 tests; breaking the code found the high-frequency
+  damping untested, now covered. CPU 0.07–0.11 % of one core.
