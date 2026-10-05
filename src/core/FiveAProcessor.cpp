@@ -1,6 +1,7 @@
 #include "core/FiveAProcessor.h"
 
 #include "core/ParameterIds.h"
+#include "dsp/DenormalGuard.h"
 
 #include <algorithm>
 #include <cmath>
@@ -58,6 +59,7 @@ void FiveAProcessor::applyGainTargets() noexcept
 
 void FiveAProcessor::process(AudioBufferView buffer) noexcept
 {
+    const dsp::DenormalGuard denormalGuard;
     const int numChannels = buffer.getNumChannels();
     const int numSamples = buffer.getNumSamples();
 

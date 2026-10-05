@@ -2,8 +2,13 @@ include(Catch)
 
 # Links only the engine: proves the signal chain builds and runs without JUCE or a plugin host.
 add_executable(fivea_engine_tests
+    Unit/AllocationGuard.cpp
+    Unit/AllocationTests.cpp
+    Unit/BypassCrossfadeTests.cpp
+    Unit/DenormalGuardTests.cpp
     Unit/FiveAProcessorTests.cpp
-    Unit/SmoothingTests.cpp)
+    Unit/SmoothingTests.cpp
+    Unit/StepMappingTests.cpp)
 
 target_link_libraries(fivea_engine_tests PRIVATE fivea_engine Catch2::Catch2WithMain)
 catch_discover_tests(fivea_engine_tests TEST_PREFIX "engine: ")

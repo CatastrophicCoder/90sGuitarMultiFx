@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | Re-planning (2026-10-05) | The owner's manual changes the block structure and parameters; plan to be revised before step 1. |
+| 1 Complete functional chain | In progress | Step 1 of 9 done (2026-10-05): model profile, step mappings, switching crossfade, denormal guard, allocation test. |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -90,3 +90,7 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   the planned engineering one; reverb/delay has 7 fixed modes with a 490 ms maximum delay;
   chorus/flanger has 5 modes including slapback; there is a noise reduction stage, a per-program
   master volume and a volume pedal input that the plan's chain does not list.
+- M1 step 1: `ModelProfile.h` (documented values and the placeholder profile), `StepMapping`
+  (documented step → algorithm value), `BypassCrossfade`, engine-side `DenormalGuard`, and an
+  allocation-counting test harness. 41 tests; four of the new ones checked by breaking the code
+  they guard (a documented delay, flush-to-zero, an allocation in `process()`, the crossfade).

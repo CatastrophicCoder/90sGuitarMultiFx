@@ -28,6 +28,10 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Gain accuracy and smoothing | `Gain settles at the requested level after the ramp`; `LinearSmoother` tests | Passing |
 | Bypass | `Global bypass returns to exact pass-through once its ramp ends`; bypass parameter exposed to hosts | Passing |
 | Editor | `The editor opens and closes` | Passing |
+| No allocation in `process()` (plan §19.1, §19.4) | `FiveAProcessor does not allocate while setting parameters and processing`, with a counting replacement of the global `operator new` (`tests/Unit/AllocationGuard.cpp`) and a self-test that it sees allocations | Passing (M1 step 1) |
+| Documented values come out exactly | `StepMappingTests.cpp`: EQ frequencies, chorus/flanger delays, delay times and maxima, MIX end points, mode clamping | Passing (M1 step 1) |
+| Placeholder mappings | Direction from the manual's wording, symmetry, finiteness over and beyond the range | Passing (M1 step 1) |
+| Switching crossfade, denormals | `BypassCrossfadeTests.cpp`, `DenormalGuardTests.cpp` | Passing (M1 step 1) |
 | Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Passing: all jobs green on `ec6afd2` (macOS, Windows, Linux; Debug and Release). The first run failed on Linux (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca` |
 | Plugin validation | `auval -v aufx Nmf1 Ctcd`; pluginval strictness 10 on the VST3 and the AU | Passing locally (macOS) and in CI on `ec6afd2`: auval and pluginval on macOS, pluginval on Windows |
 | Plugin passes audio in a host (plan §21 M0, amended 2026-10-05) | Covered at the `processBlock` level above, and by auval and pluginval; not yet listened to in a DAW | Manual check outstanding |
@@ -36,7 +40,6 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 
 | Property | Plan | Milestone |
 |----------|------|-----------|
-| No allocation in `process()` | §19.1, §19.4 | 1 (needs an allocation-counting harness) |
 | All 32 on/off combinations of the five blocks | §19.2 | 1 |
 | Per-block unit tests (compressor, drive, EQ, modulation, time effects) | §8.2, §11.5, §19.1 | 1 |
 | Program changes while running, crossfades | §19.2 | 2 |

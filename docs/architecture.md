@@ -108,7 +108,9 @@ attributes in Milestone 2 under a schema-version bump only if the change is not 
 | Item | Reason |
 |------|--------|
 | Added `src/core/AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h` | Types and declarations the plan's interface sketch (§6.1) needs. |
-| Not yet created: `Compressor`, `Drive`, `ThreeBandEq`, `Modulation`, `TimeEffects`, `DelayLine`, `FixedPoint`, `DenormalGuard` | Milestone 1+; M0 forbids speculative DSP. `ScopedNoDenormals` in `processBlock` covers denormals for now. |
+| Not yet created: `Compressor`, `Drive`, `ThreeBandEq`, `Modulation`, `TimeEffects`, `DelayLine` | Milestone 1, steps 2–6. |
+| Not created: `FixedPoint` | Plan §13: disabled until evidence supports a configuration; not needed for Milestone 1. |
+| Added in M1 step 1: `src/core/ModelProfile.h`, `src/core/StepMapping.h/.cpp`, `src/dsp/BypassCrossfade.h`, `src/dsp/DenormalGuard.h` | Plan §14 (one profile for hardware values) and §7.3 (documented step → algorithm value); §15 switching; denormals inside the JUCE-free engine. |
 | Not yet created: `src/ui/ProgramDisplay` | Bank/program workflow is Milestone 2. |
 | Not yet created: `tools/*`, `docs/measurement-protocol.md` | Milestone 4. Directories exist. |
 | Added `docs/source-register.md` early | The evidence register needs somewhere to cite sources. |

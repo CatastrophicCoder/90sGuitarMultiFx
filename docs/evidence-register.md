@@ -60,10 +60,13 @@ system; per plan §13 they are not turned into filters, noise or bit reduction.
 | EV-105 | Effect enables default to off | PLACEHOLDER (design choice) | This project | A default of "on" would suggest an effect that does not exist yet. Revisit in Milestone 1. | — | — |
 | EV-106 | Processing at host sample rate (native mode) | PLACEHOLDER (design choice) | SRC-000 §6.2 | Engine is sample-rate aware; tested at 44.1, 48, 88.2, 96 and 192 kHz. | — | — |
 | EV-107 | Intended placement: in front of an amp (or amp sim): guitar → plugin → amp → cabinet; no standalone | PLACEHOLDER (design choice) | Owner's decision 2026-10-05 | No standalone target. Milestone 1 sets gain staging for an instrument-level guitar input and an output suited to an amp's input; the drive block works like a pedal driving the amp. Into a single amp, the L/Mono output is what is heard, so the L/Mono routing mode (plan §3.3) matters. | — | — |
+| EV-108 | Effect on/off switching fades over 10 ms, linear | PLACEHOLDER (design choice) | Plan §15 | `dsp/BypassCrossfade.h`, length from `SwitchingProfile`. A block keeps running while it fades out. | — | Whether the original unit cuts, ramps or keeps tails when an effect is switched (EV-002). |
+| EV-109 | Step-to-value mappings for every documented control (dB per EQ step, SENS → threshold, ATTACK → ms, DRIVE → gain, TONE → cutoff, SPEED → Hz, DEPTH → ms, F.BACK → feedback, LEVEL/MASTER/TRIM → gain, MIX curve between its documented end points, NR LEVEL → threshold) | PLACEHOLDER | This project; values in `src/core/ModelProfile.h` | All in one profile (`functionalPlaceholderProfile`); a measured profile replaces them without code changes. Only their direction is tested, from the manual's wording. | Low (values) | Every value, by measurement (Milestone 5). |
 
 ## Change log
 
 | Date | Change |
 |------|--------|
 | 2026-10-04 | Register created for Milestone 0. All CONFIRMED rows taken from the plan, pending primary citations. |
+| 2026-10-05 | M1 step 1: EV-108 (switching crossfade) and EV-109 (placeholder step mappings) added. |
 | 2026-10-05 | Owner's manual (SRC-001) and service manual (SRC-002) catalogued. EV-001–012 re-cited to primary sources; EV-012 upgraded from INFERRED to CONFIRMED; EV-013–023 added. |

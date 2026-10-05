@@ -130,6 +130,31 @@ Compressor off; DIST/OD Mode 1, Drive 14, Tone 15, Level 11; 3 Band EQ Bass 6, M
 Mid 5, Treble 1, Trim 12; Chorus/Flanger off; Reverb/Delay Mode 4, Mix 5. (Utility values not
 shown.) The full preset table ("attached Effect Parameter List", p. 7) is not part of this PDF.
 
+## Placeholder mappings (Milestone 1)
+
+Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProfile.h`
+(`functionalPlaceholderProfile`). All PLACEHOLDER (EV-109) except where marked documented.
+
+| Control | Mapping |
+|---------|---------|
+| Compressor SENS 0–15 | Threshold −6 dBFS at 0, −3 dB per step (−51 dBFS at 15); ratio 8:1, knee 6 dB |
+| Compressor ATTACK 0–7 | 50, 30, 20, 12, 8, 5, 3, 1 ms; release fixed at 250 ms |
+| LEVEL, MASTER 0–15 | 0 = silent; otherwise 2 dB per step, unity at 12 (+6 dB at 15) |
+| DIST/OD DRIVE 0–15 | Pre-gain: Overdrive 0 dB + 2 dB/step; Distortion 10 dB + 3 dB/step |
+| DIST/OD TONE 0–15 | Low-pass cutoff 1–8 kHz, log-spaced |
+| EQ BASS, MID, TREBLE −7…+7 | 1.5 dB per step (±10.5 dB); mid Q 0.7 |
+| EQ MID FREQ 1–8 | **Documented** frequency table |
+| EQ TRIM 0–15 | Unity at 15, −1.5 dB per step below |
+| Chorus/Flanger base delay | **Documented** per mode |
+| SPEED 0–15 | 0.1–10 Hz, log-spaced |
+| DEPTH 0–15 | 0 to a per-mode maximum: 1.6, 3.6, 6, 6, 1 ms |
+| F.BACK 0–15 | 0 to 0.9 (Chorus/Flanger) or 0.85 (Delay), linear |
+| MIX 0–15 | Dry stays at unity; wet 0 → equal to dry, linear (end points **documented**) |
+| Delay TIME, FINE | **Documented**: TIME × 100 ms + FINE × 10 ms, TIME ≤ 3 (Echoverb) or 4 (Delay) |
+| NR LEVEL 0–15 | 0 = off; threshold −90 dBFS at 1, +3 dB per step |
+
+Out-of-range steps are clamped to the documented range.
+
 ## Mapping template
 
 | Block | Documented label | Documented range / values | Source (SRC-nnn p.) | Status | Plugin ID | Normalised mapping | Algorithm parameter and unit | Mapping status | Notes |
