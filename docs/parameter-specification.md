@@ -140,8 +140,10 @@ Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProf
 | Compressor SENS 0–15 | Threshold −6 dBFS at 0, −3 dB per step (−51 dBFS at 15); ratio 8:1, knee 6 dB; feed-forward peak compressor linked across channels (EV-111) |
 | Compressor ATTACK 0–7 | 50, 30, 20, 12, 8, 5, 3, 1 ms; release fixed at 250 ms |
 | LEVEL, MASTER 0–15 | 0 = silent; otherwise 2 dB per step, unity at 12 (+6 dB at 15) |
+| DIST/OD MODE 1–2 | **Documented**: 1 Distortion, 2 Overdrive; each its own placeholder pipeline (EV-112); switching crossfades over 20 ms |
 | DIST/OD DRIVE 0–15 | Pre-gain: Overdrive 0 dB + 2 dB/step; Distortion 10 dB + 3 dB/step |
-| DIST/OD TONE 0–15 | Low-pass cutoff 1–8 kHz, log-spaced |
+| DIST/OD TONE 0–15 | Butterworth low-pass cutoff 1–8 kHz, log-spaced |
+| DIST/OD LEVEL 0–15 | As LEVEL above, after a per-mode output trim (Distortion −3 dB) |
 | EQ BASS, MID, TREBLE −7…+7 | 1.5 dB per step (±10.5 dB); BASS low shelf and TREBLE high shelf with slope 1, MID peaking with Q 0.7 (EV-110) |
 | EQ MID FREQ 1–8 | **Documented** frequency table |
 | EQ TRIM 0–15 | Unity at 15, −1.5 dB per step below |

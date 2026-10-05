@@ -119,6 +119,31 @@ inline double largestSecondDifference(const PlanarBuffer& buffer, int channel)
     return largest;
 }
 
+// Amplitude of the component at `frequency` in samples[start, start + length), by the Goertzel
+// algorithm, with a Hann window so neighbouring components leak little. A full-scale sine of
+// amplitude A at exactly that frequency reads ≈ A.
+inline double toneAmplitude(const std::vector<float>& samples, double frequency, double sampleRate, std::size_t start,
+                            std::size_t length)
+{
+    const double omega = 2.0 * std::numbers::pi * frequency / sampleRate;
+    const double coefficient = 2.0 * std::cos(omega);
+    double previous = 0.0;
+    double beforePrevious = 0.0;
+    double windowSum = 0.0;
+    for (std::size_t n = 0; n < length; ++n)
+    {
+        const double window =
+            0.5 - 0.5 * std::cos(2.0 * std::numbers::pi * static_cast<double>(n) / static_cast<double>(length - 1));
+        windowSum += window;
+        const double current = window * samples[start + n] + coefficient * previous - beforePrevious;
+        beforePrevious = previous;
+        previous = current;
+    }
+    const double power =
+        previous * previous + beforePrevious * beforePrevious - coefficient * previous * beforePrevious;
+    return 2.0 * std::sqrt(std::max(power, 0.0)) / windowSum;
+}
+
 inline bool allFinite(const PlanarBuffer& buffer)
 {
     for (const auto& channel : buffer.data())

@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | In progress | Steps 1–3 of 9 done (2026-10-05): infrastructure; 3 Band EQ; compressor. |
+| 1 Complete functional chain | In progress | Steps 1–4 of 9 done (2026-10-05): infrastructure; 3 Band EQ; compressor; distortion/overdrive. |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -107,3 +107,11 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   crossing, where a gain jump leaves no trace; the compressor and EQ click tests now change at
   sine peaks, and their bounds were re-measured (EQ 0.049 vs 0.61 → bound 0.15; compressor
   0.0001 vs 0.096 → bound 0.005).
+- M1 step 4: Distortion/Overdrive (per-mode pipeline, five interchangeable waveshapers, MODE
+  crossfade) and an own FIR half-band oversampler (latency 69 at 2×, 76 at 4×). The first
+  oversampler version had a half-sample latency, caught by the impulse test and fixed by keeping
+  the decimated output aligned with the first of each sample pair. Click metric for the drive
+  compares the transition with both settled states, since DRIVE legitimately sharpens the
+  waveform. 85 tests; eight checked by breaking the code (a DC test was added first, since no
+  test covered the DC blocker). CPU, stereo at 48 kHz: 0.05 % (1×), 0.9 % (2×), 1.4 % (4×) of one
+  core.

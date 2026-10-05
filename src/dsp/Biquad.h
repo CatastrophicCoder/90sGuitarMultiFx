@@ -27,6 +27,8 @@ namespace design
 [[nodiscard]] BiquadCoefficients lowShelf(double sampleRate, double frequency, double gainDb, double slope) noexcept;
 [[nodiscard]] BiquadCoefficients highShelf(double sampleRate, double frequency, double gainDb, double slope) noexcept;
 [[nodiscard]] BiquadCoefficients peaking(double sampleRate, double frequency, double q, double gainDb) noexcept;
+[[nodiscard]] BiquadCoefficients lowPass(double sampleRate, double frequency, double q) noexcept;
+[[nodiscard]] BiquadCoefficients highPass(double sampleRate, double frequency, double q) noexcept;
 } // namespace design
 
 // The design's own frequency response, H(e^jω), for tests and displays.

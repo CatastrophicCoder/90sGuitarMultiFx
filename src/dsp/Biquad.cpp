@@ -59,6 +59,22 @@ BiquadCoefficients peaking(double sampleRate, double frequency, double q, double
                      1.0 - alpha / amplitude);
 }
 
+BiquadCoefficients lowPass(double sampleRate, double frequency, double q) noexcept
+{
+    const double omega = 2.0 * std::numbers::pi * frequency / sampleRate;
+    const double alpha = std::sin(omega) / (2.0 * q);
+    const double c = std::cos(omega);
+    return normalise((1.0 - c) / 2.0, 1.0 - c, (1.0 - c) / 2.0, 1.0 + alpha, -2.0 * c, 1.0 - alpha);
+}
+
+BiquadCoefficients highPass(double sampleRate, double frequency, double q) noexcept
+{
+    const double omega = 2.0 * std::numbers::pi * frequency / sampleRate;
+    const double alpha = std::sin(omega) / (2.0 * q);
+    const double c = std::cos(omega);
+    return normalise((1.0 + c) / 2.0, -(1.0 + c), (1.0 + c) / 2.0, 1.0 + alpha, -2.0 * c, 1.0 - alpha);
+}
+
 } // namespace design
 
 std::complex<double> response(const BiquadCoefficients& coefficients, double frequency, double sampleRate) noexcept

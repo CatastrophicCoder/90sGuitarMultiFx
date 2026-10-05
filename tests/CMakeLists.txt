@@ -7,7 +7,9 @@ add_executable(fivea_engine_tests
     Unit/BypassCrossfadeTests.cpp
     Unit/CompressorTests.cpp
     Unit/DenormalGuardTests.cpp
+    Unit/DriveTests.cpp
     Unit/FiveAProcessorTests.cpp
+    Unit/OversamplerTests.cpp
     Unit/SmoothingTests.cpp
     Unit/StepMappingTests.cpp
     Unit/ThreeBandEqTests.cpp)

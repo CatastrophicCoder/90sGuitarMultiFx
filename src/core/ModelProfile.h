@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dsp/Waveshapers.h"
+
 #include <array>
 
 // Every hardware-specific value in one place (plan §14). Two kinds, kept apart on purpose:
@@ -95,12 +97,24 @@ struct CompressorProfile
     float releaseMs = 250.0f;                                                          // no release control on the unit
 };
 
+// One per DIST/OD mode. The documented descriptions are "a high gain 'fuzz' type effect"
+// (Distortion) and "a mild saturation effect" (Overdrive), SRC-001 p. 10; everything here is a
+// placeholder pipeline in their spirit (plan §9.1):
+//   input high-pass → pre-emphasis bell → DRIVE gain → waveshaper (oversampled) → DC blocker →
+//   TONE low-pass → output trim.
 struct DriveProfile
 {
     float preGainAtZeroDb;
     float preGainDbPerStep;
     float toneMinimumHz;
     float toneMaximumHz;
+    dsp::WaveshaperType waveshaper;
+    float inputHighPassHz;
+    float emphasisHz;
+    float emphasisGainDb;
+    float emphasisQ;
+    float outputTrimDb;
+    float dcBlockerHz = 10.0f; // removes the offset an asymmetric curve creates
 };
 
 struct EqProfile
@@ -148,8 +162,26 @@ struct FiveAModelProfile
 {
     double internalSampleRate = documented::internalSampleRate;
     CompressorProfile compressor;
-    DriveProfile overdrive{0.0f, 2.0f, 1000.0f, 8000.0f};
-    DriveProfile distortion{10.0f, 3.0f, 1000.0f, 8000.0f};
+    DriveProfile overdrive{.preGainAtZeroDb = 0.0f,
+                           .preGainDbPerStep = 2.0f,
+                           .toneMinimumHz = 1000.0f,
+                           .toneMaximumHz = 8000.0f,
+                           .waveshaper = dsp::WaveshaperType::CubicSoft,
+                           .inputHighPassHz = 150.0f,
+                           .emphasisHz = 800.0f,
+                           .emphasisGainDb = 6.0f,
+                           .emphasisQ = 0.7f,
+                           .outputTrimDb = 0.0f};
+    DriveProfile distortion{.preGainAtZeroDb = 10.0f,
+                            .preGainDbPerStep = 3.0f,
+                            .toneMinimumHz = 1000.0f,
+                            .toneMaximumHz = 8000.0f,
+                            .waveshaper = dsp::WaveshaperType::AsymmetricPiecewise,
+                            .inputHighPassHz = 100.0f,
+                            .emphasisHz = 1200.0f,
+                            .emphasisGainDb = 9.0f,
+                            .emphasisQ = 0.7f,
+                            .outputTrimDb = -3.0f};
     EqProfile eq;
     LevelProfile level;
     ModulationProfile modulation;
