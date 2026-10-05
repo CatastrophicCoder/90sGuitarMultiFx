@@ -66,12 +66,14 @@ system; per plan §13 they are not turned into filters, noise or bit reduction.
 | EV-111 | Compressor algorithm: feed-forward, no lookahead, peak level linked across channels, gain computer in dB with fixed ratio and soft knee, smooth branching detector on the gain reduction (Giannoulis, Massberg & Reiss 2012) | PLACEHOLDER | Controls documented (EV-022); the algorithm is this project's choice | `dsp/Compressor`. Detector type kept replaceable (plan §8.1); only Peak exists. | — | Static curve, attack and release behaviour, detector type, whether the original links anything (it is mono until the DSP, EV-005): measure (plan §8.2). |
 | EV-112 | Distortion/Overdrive pipeline per mode: input high-pass → pre-emphasis bell → DRIVE gain → waveshaper → 10 Hz DC blocker → TONE low-pass (Butterworth) → output trim. Distortion: asymmetric piecewise curve, 100 Hz high-pass, +9 dB at 1.2 kHz, 10–55 dB drive. Overdrive: cubic soft curve, 150 Hz high-pass, +6 dB at 800 Hz, 0–30 dB drive. MODE changes crossfade over 20 ms | PLACEHOLDER | Mode descriptions documented ("high gain 'fuzz'", "mild saturation", SRC-001 p. 10); everything else this project's choice | `dsp/Drive`, `dsp/Waveshapers` (five interchangeable curves, plan §9.1), values in `ModelProfile.h`. | — | The transfer curves, filtering and level behaviour: measure (plan §9.3). |
 | EV-113 | Optional 2× or 4× oversampling of the waveshaper: linear-phase FIR half-band stages (139 and 27 taps, Kaiser, ≈100 dB); latency 69 samples at 2×, 76 at 4×; off by default; fixed at prepare time | PLACEHOLDER (design choice) | Plan §9.2; owner's decision (off by default) | `dsp/Oversampler`. The original runs at 44.1 kHz with no oversampling known; strict hardware-rate mode will disable it unless measurements justify it (plan §9.2). | — | — |
+| EV-114 | Chorus/Flanger structure: delay = documented base delay + DEPTH × sine LFO; cubic (Catmull-Rom) interpolation; positive feedback into the delay line; out = dry + MIX × delayed; right channel's LFO leads by 90°; LFO restarts at phase 0 on reset; a MODE change ducks the effect and its feedback over 20 ms and switches at the bottom | PLACEHOLDER | Base delays and MIX end points documented (EV-018, EV-020); the rest this project's choice | `dsp/Modulation`, `dsp/DelayLine`. A mono input becomes stereo here (EV-005). | — | LFO shape, rate and depth mapping, feedback sign, stereo relationship, interpolation character, LFO reset on program change: measure (plan §11.4). |
 
 ## Change log
 
 | Date | Change |
 |------|--------|
 | 2026-10-04 | Register created for Milestone 0. All CONFIRMED rows taken from the plan, pending primary citations. |
+| 2026-10-05 | M1 step 5: EV-114 (chorus/flanger structure) added. |
 | 2026-10-05 | M1 step 4: EV-112 (drive pipeline) and EV-113 (oversampling) added. |
 | 2026-10-05 | M1 step 3: EV-111 (compressor algorithm) added. |
 | 2026-10-05 | M1 step 2: EV-110 (EQ filter shapes) added. |

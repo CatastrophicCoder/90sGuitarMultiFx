@@ -148,7 +148,8 @@ Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProf
 | EQ MID FREQ 1–8 | **Documented** frequency table |
 | EQ TRIM 0–15 | Unity at 15, −1.5 dB per step below |
 | Chorus/Flanger base delay | **Documented** per mode |
-| SPEED 0–15 | 0.1–10 Hz, log-spaced |
+| Chorus/Flanger MODE 1–5 | **Documented** base delays 1.8, 4.0, 24, 32, 75 ms; a change ducks the effect over 20 ms |
+| SPEED 0–15 | Sine LFO, 0.1–10 Hz, log-spaced; right channel 90° ahead (EV-114) |
 | DEPTH 0–15 | 0 to a per-mode maximum: 1.6, 3.6, 6, 6, 1 ms |
 | F.BACK 0–15 | 0 to 0.9 (Chorus/Flanger) or 0.85 (Delay), linear |
 | MIX 0–15 | Dry stays at unity; wet 0 → equal to dry, linear (end points **documented**) |

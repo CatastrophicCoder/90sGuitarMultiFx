@@ -44,7 +44,9 @@ add_library(fivea_engine STATIC
     src/core/StepMapping.cpp
     src/dsp/Biquad.cpp
     src/dsp/Compressor.cpp
+    src/dsp/DelayLine.cpp
     src/dsp/Drive.cpp
+    src/dsp/Modulation.cpp
     src/dsp/Oversampler.cpp
     src/dsp/ThreeBandEq.cpp)
 

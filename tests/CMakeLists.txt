@@ -9,6 +9,7 @@ add_executable(fivea_engine_tests
     Unit/DenormalGuardTests.cpp
     Unit/DriveTests.cpp
     Unit/FiveAProcessorTests.cpp
+    Unit/ModulationTests.cpp
     Unit/OversamplerTests.cpp
     Unit/SmoothingTests.cpp
     Unit/StepMappingTests.cpp

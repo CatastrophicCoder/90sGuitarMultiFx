@@ -138,6 +138,7 @@ struct ModulationProfile
     float speedMaximumHz = 10.0f;
     std::array<float, 5> maximumDepthMs{1.6f, 3.6f, 6.0f, 6.0f, 1.0f}; // per mode, Flanger 1 … Slapback
     float feedbackMaximum = 0.9f;
+    float stereoPhaseDegrees = 90.0f; // right channel's LFO leads the left (EV-005: where stereo begins is unknown)
 };
 
 struct DelayProfile

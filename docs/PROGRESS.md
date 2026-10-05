@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | In progress | Steps 1–4 of 9 done (2026-10-05): infrastructure; 3 Band EQ; compressor; distortion/overdrive. |
+| 1 Complete functional chain | In progress | Steps 1–5 of 9 done (2026-10-05): infrastructure; 3 Band EQ; compressor; distortion/overdrive; chorus/flanger. |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -115,3 +115,10 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   waveform. 85 tests; eight checked by breaking the code (a DC test was added first, since no
   test covered the DC blocker). CPU, stereo at 48 kHz: 0.05 % (1×), 0.9 % (2×), 1.4 % (4×) of one
   core.
+- M1 step 5: chorus/flanger (five documented delays, sine LFO, cubic delay line, feedback,
+  stereo phase). Measuring before setting bounds found two click sources in the MODE switch:
+  clearing the delay line made the effect restart with a step one delay later, and feedback wrote
+  the read-position jump back into the line. Fixed by keeping the line's history and ducking the
+  feedback with the effect. Breaking the code showed the interpolation choice was only caught by
+  accident; a deliberate 4 kHz accuracy test now separates cubic (0.28 %) from linear (3.8 %).
+  100 tests.
