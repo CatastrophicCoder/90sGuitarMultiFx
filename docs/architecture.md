@@ -1,8 +1,9 @@
 # Architecture
 
-State during **Milestone 1**: the full effect chain runs in the plugin (VST3, and AU on macOS),
-with every documented control as a host parameter. Every algorithm is a placeholder; nothing in
-this build reproduces, or claims to reproduce, the sound of the original unit.
+State at the end of **Milestone 1**: the plugin (VST3, and AU on macOS) runs the original unit's
+full effect chain, with every documented control as a host parameter and a replica of its front
+panel in Manual/Edit mode. Every algorithm is a placeholder: the controls and documented values
+match the original; the sound does not claim to.
 
 ## Layers
 
@@ -10,67 +11,88 @@ this build reproduces, or claims to reproduce, the sound of the original unit.
  Host (DAW)
    │  juce::AudioBuffer, parameters, state blobs
    ▼
- PluginProcessor            src/plugin      JUCE adapter: buses, parameters (APVTS), state, editor
-   │  ParameterSnapshot (by value, once per block)
+ PluginProcessor          src/plugin   JUCE adapter: buses, parameters (APVTS), state, latency, editor
+   │  ParameterSnapshot (by value, once per block)       PluginEditor → ui::MainPanel (src/ui)
    │  AudioBufferView   (non-owning channel pointers)
    ▼
- FiveAProcessor                src/core        Engine façade. Pure C++20, no JUCE.
-   input trim → NR → Compressor → Drive → EQ → Chorus/Flanger → Reverb/Delay → MASTER → output level
-               (the documented order, EV-001; NR and MASTER placed as placeholders, EV-117)
+ FiveAProcessor           src/core     The chain. Pure C++20, no JUCE.
+   input trim → NR → Compressor → Distortion/Overdrive → 3 Band EQ → Chorus/Flanger
+              → Reverb/Delay → MASTER → output level
+   (the documented order, EV-001; NR and MASTER placed as placeholders, EV-117)
+   │
+   ▼
+ Blocks                   src/dsp      NoiseReduction, Compressor, Drive (+ Oversampler, Waveshapers),
+                                       ThreeBandEq (+ Biquad), Modulation (+ DelayLine),
+                                       TimeEffects (+ Reverb, DelayLine), BypassCrossfade, Smoothing
 ```
 
-- **`fivea_engine`** (static library): `FiveAProcessor`, `AudioBufferView`, `ParameterSnapshot`,
-  `ParameterIds.h`, `src/dsp/*`. It has no JUCE dependency so it can be tested without a host and
-  wrapped by another plugin format (CLAP) later without changing DSP code (plan §4).
-- **`FiveAPlugin`** (JUCE shared-code target, plus VST3 and, on macOS, AU wrappers):
-  `PluginProcessor`, `PluginEditor`, `ParameterLayout`, `PresetState`, `src/ui/*`.
-
-`ParameterLayout.cpp` and `PresetState.cpp` live in `src/core` as the plan lays out, but depend on
-JUCE and are compiled into the plugin target, not the engine.
+- **`fivea_engine`** (static library): `src/core` (except the two JUCE files below) and `src/dsp`.
+  No JUCE dependency, so the chain is tested without a host and can be wrapped for another plugin
+  format (CLAP) without changing DSP code (plan §4).
+- **`FiveAPlugin`** (JUCE shared code, plus VST3 and, on macOS, AU wrappers): `src/plugin`,
+  `src/ui`, and `src/core/ParameterLayout.cpp` and `PresetState.cpp`, which use JUCE.
+- **`FiveAPanelFonts`**: Barlow Condensed, embedded as binary data.
 
 The split between a host-facing controller and an audio engine mirrors, conceptually, the
-original's controller CPU and DSP (EV-007, INFERRED). It is a software design choice and does not
-model either chip.
+original's controller CPU and DSP (EV-007). It is a software design choice and models neither chip.
+
+## Hardware values and placeholders
+
+All values that concern the original unit live in `src/core/ModelProfile.h` (plan §14):
+
+- `documented::` — values stated in the owner's manual (CONFIRMED, cited): control ranges, EQ
+  frequencies, chorus/flanger delays, delay time steps and maxima, MIX end points.
+- `functionalPlaceholderProfile` — every step-to-value mapping and algorithm constant
+  (PLACEHOLDER, EV-109 to EV-117). A measured profile replaces it without code changes.
+
+`src/core/StepMapping` turns a documented control step into an algorithm value (plan §7.3's middle
+layer), clamping every step to its documented range.
 
 ## Threading and real-time rules
 
 | Call | Thread | Allocation | Notes |
 |------|--------|------------|-------|
-| `FiveAProcessor::prepare`, `reset` | message / host prepare | allowed (none today) | Sets ramp lengths for the sample rate; `reset` settles every ramp on the current parameters. |
-| `FiveAProcessor::setParameters` | audio | none | Copies a plain struct, sanitises values (clamp, snap to 0.1 dB, NaN → 0 dB). |
-| `FiveAProcessor::process` | audio | none | No locks, I/O, logging or construction. |
-| `PluginProcessor::processBlock` | audio | none | Reads parameters from APVTS atomics (relaxed loads) into a snapshot. |
-| `get/setStateInformation` | message | yes | Never touches the engine directly; the audio thread sees new values through the atomics. |
+| `FiveAProcessor::prepare` | message / host prepare | yes | Sizes every delay line, reverb network and scratch buffer for the sample rate and block size. |
+| `FiveAProcessor::reset` | message / host prepare | none | Clears state, settles every ramp on the current parameters. |
+| `FiveAProcessor::setParameters` | audio | none | Plain struct copy; values sanitised; blocks' settings updated (ramps start only on real changes). |
+| `FiveAProcessor::process` | audio | none | No locks, I/O, logging or construction; tested with a counting `operator new`. |
+| `PluginProcessor::processBlock` | audio | none | Reads parameters from APVTS atomics into a snapshot; records the input peak (atomic). |
+| `get/setStateInformation` | message | yes | Touches parameters only; the audio thread sees them through the atomics. |
+| `applyOversamplingSetting` | message (timer) | yes | Re-prepares with processing suspended, reports the new latency. |
+| Editor | message | yes | Reads parameters through attachments and atomics; the input peak through an atomic exchange. |
 
-Parameters reach the audio thread only through JUCE's per-parameter `std::atomic<float>`; there is
-no shared mutable state between the editor and the engine.
+Denormals: the engine sets flush-to-zero for the duration of `process()` (`dsp/DenormalGuard.h`),
+independent of the JUCE wrapper's own.
 
 ## Switching, bypass and latency
 
 - Each effect has a 10 ms crossfade (EV-108). A switched-off effect is not run, and is reset when
-  its fade-out ends. Switching on, the chorus/flanger's and reverb/delay's input fades in as well.
-- Global bypass crossfades to the dry input (EV-104).
-- Oversampling the drive adds 69 (2×) or 76 (4×) samples of latency. The drive's bypass path and
-  the global bypass path are delayed by the same amount, so the reported latency is constant.
-- The oversampling setting is applied at prepare time; a change while running is applied on the
-  message thread with processing suspended, and the host is told the new latency.
+  its fade-out ends. Switching on, the chorus/flanger's and reverb/delay's input fades in as well,
+  so a block with memory never replays a step.
+- Within a block, MODE changes crossfade (drive: two pipelines; chorus/flanger: a duck of the
+  effect and its feedback; reverb/delay: two engines with the old tail fading out, plan §15).
+- Stepped controls ramp (20 ms) so a step does not click.
+- Global bypass crossfades to the dry input and becomes bit-exact (EV-104).
+- Oversampling the drive adds 69 (2×) or 76 (4×) samples. The drive's bypass path and the global
+  bypass path are delayed to match, so the reported latency is constant.
 - The engine processes in chunks of its announced block size, so longer host blocks are safe.
 
 ## Signal handling at the boundary
 
 - Supported layouts: mono → mono, mono → stereo, stereo → stereo.
-- Mono → stereo: the input is copied to the right output before the engine runs. Where the
-  original becomes stereo is unknown, so this is PLACEHOLDER (EV-005).
+- Mono → stereo: the input is copied to the right output before the engine runs. The chain treats
+  both channels alike up to the chorus/flanger, whose right LFO leads by 90°, and the reverb, whose
+  left and right taps differ (EV-005).
 - Output channels without an input are cleared, never passed through as host garbage.
-- Gains are computed once per sample and applied to every channel, keeping stereo matched.
 
-## Parameters
+## Parameters and state
 
-IDs are centralised in `src/core/ParameterIds.h` and listed in `parameter-specification.md`.
-Each `juce::ParameterID` carries version hint 1; parameters added later take the version of the
-release that adds them.
+IDs are in `src/core/ParameterIds.h`, ranges in `ParameterLayout.cpp`, listed in
+`parameter-specification.md`. Documented controls are stepped integers (MODEs: named choices).
+Every `juce::ParameterID` carries version hint 1; parameters added after a release take that
+release's number.
 
-## State format (schema version 1)
+State format (schema version 1):
 
 ```xml
 <FiveAState schemaVersion="1" model="functional-placeholder">
@@ -81,53 +103,48 @@ release that adds them.
 </FiveAState>
 ```
 
-Stored inside JUCE's binary XML wrapper (`copyXmlToBinary`). Values are in plain units, written in
-parameter-layout order, so saving the same settings always yields the same bytes.
+Stored inside JUCE's binary XML wrapper, plain values in layout order, so saving the same settings
+always gives the same bytes. Loading refuses a foreign or unversioned document; migrates older
+schemas (none yet); reads newer ones for the parameters it knows; parses each value strictly,
+clamps it, defaults it if missing; ignores anything unknown.
 
-Loading (`fivea::state::fromXml`):
+The plan's §16 shows the schema as JSON "conceptually"; XML carries the same information and is
+native to JUCE. Bank, program and preset name arrive in Milestone 2.
 
-1. Root tag must match and `schemaVersion` must be an integer ≥ 1; otherwise the load is refused
-   and current settings are kept.
-2. Older versions pass through `migrateToCurrentSchema` (empty until version 2 exists).
-3. Newer versions are read for the parameters this build knows.
-4. Each known parameter: parsed strictly, clamped to range; if missing or unreadable, its default.
-5. Unknown elements and attributes are ignored.
+## The editor
 
-The plan's §16 shows the schema as JSON "conceptually". XML is used because JUCE hosts it
-natively and it carries the same information; bank, program and preset name will be added as
-attributes in Milestone 2 under a schema-version bump only if the change is not additive.
+`ui::MainPanel` is the replica panel (`panel-specification.md`): drawn in code in one design space
+measured from the reference photo and scaled as a whole. `PanelLayout.h` holds the grid table and
+every coordinate; knobs A–E bind to the selected row's parameters through attachments that are
+rebuilt when the slide switch moves. Program mode, banks and WRITE are drawn and inactive.
 
 ## Build and dependencies
 
 - CMake ≥ 3.25, C++20, Ninja recommended.
-- JUCE 9.0.2 and Catch2 v3.9.1 are git submodules in `external/`, pinned to their release tags
-  (the same commits as the other Catastrophic Audio projects). CMake stops with a message if
-  `external/JUCE` is empty.
+- JUCE 9.0.2 and Catch2 v3.9.1 are git submodules in `external/`, pinned to release tags (the same
+  commits as the other Catastrophic Audio projects). CMake stops with a message if `external/JUCE`
+  is empty.
 - A Release build installs the AU and VST3 into the user plugin folders; Debug does not
-  (`FIVEA_COPY_PLUGIN`). Both would install to the same place, and whichever built last would be what
-  a DAW loads.
-- Windows links the C++ runtime statically, so a host does not need `VCRUNTIME140.dll` beside the
-  plugin to load it.
-- Company: Catastrophic Audio (bundle ID `com.catastrophicaudio.fivea`, manufacturer
-  code `Ctcd`, shared with its other plugins). Plugin code `Nmf1`. Product name
-  "Five-A MultiFX Processor" (owner's decision 2026-10-05; it avoids the original's literal name
-  and replaces its model name, plan §17.2). Changing the manufacturer or plugin code, or the
-  bundle ID, after release breaks saved sessions.
+  (`FIVEA_COPY_PLUGIN`).
+- Windows links the C++ runtime statically, so a host does not need `VCRUNTIME140.dll` to load it.
+- Identity: Catastrophic Audio (bundle ID `com.catastrophicaudio.fivea`, manufacturer code `Ctcd`,
+  shared with its other plugins), plugin code `Nmf1`, product "Five-A MultiFX Processor". Changing
+  the codes or the bundle ID after release breaks saved sessions.
 
-## Differences from the plan's file layout (plan §5)
+## Where Milestone 1 differs from the plan
 
-| Item | Reason |
-|------|--------|
-| Added `src/core/AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h` | Types and declarations the plan's interface sketch (§6.1) needs. |
-| Added in M1 step 6: `src/dsp/Reverb.h/.cpp`, `src/dsp/TimeEffects.h/.cpp` | Plan §5, §12, §15. |
-| Added in M1 step 5: `src/dsp/DelayLine.h/.cpp`, `src/dsp/Modulation.h/.cpp` | Plan §5, §11. `DelayLine` will also serve the delay and reverb. |
-| Added in M1 step 4: `src/dsp/Drive.h/.cpp`, `src/dsp/Waveshapers.h`, `src/dsp/Oversampler.h/.cpp` | Plan §5, §9. The plan's `DriveModel` interface is one class configured per mode by profile data; a measured model with a different structure would replace it behind the same calls. Oversampling factor is fixed at prepare time because it changes the latency (plan §9.2). |
-| Added in M1 step 3: `src/dsp/Compressor.h/.cpp` | Plan §5, §8. |
-| Added in M1 step 2: `src/dsp/Biquad.h/.cpp`, `src/dsp/ThreeBandEq.h/.cpp` | `ThreeBandEq` per plan §5; `Biquad` holds the cookbook designs and the filter they run in, shared with later blocks. |
-| Not created: `FixedPoint` | Plan §13: disabled until evidence supports a configuration; not needed for Milestone 1. |
-| Added in M1 step 1: `src/core/ModelProfile.h`, `src/core/StepMapping.h/.cpp`, `src/dsp/BypassCrossfade.h`, `src/dsp/DenormalGuard.h` | Plan §14 (one profile for hardware values) and §7.3 (documented step → algorithm value); §15 switching; denormals inside the JUCE-free engine. |
-| Not yet created: `src/ui/ProgramDisplay` | Bank/program workflow is Milestone 2; the panel's display already exists (`SevenSegmentDisplay`). |
-| Added in M1 step 8: `src/ui/PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `MainPanel` rebuilt; `EffectSection` removed | The replica panel (`docs/panel-specification.md`). |
-| Not yet created: `tools/*`, `docs/measurement-protocol.md` | Milestone 4. Directories exist. |
-| Added `docs/source-register.md` early | The evidence register needs somewhere to cite sources. |
-| Removed the CLion template `main.cpp` | Replaced by the plugin targets. |
+| Plan | Implementation | Why |
+|------|----------------|-----|
+| §7.3: engineering parameters first, documented ones later in a Hardware mode | The documented controls are the host parameters, stepped | Owner's decision after the owner's manual was catalogued (PROGRESS, 2026-10-05) |
+| §3.1: five blocks | Plus the documented noise reduction and master volume (Utility page) | SRC-001 pp. 7, 12; owner's decision |
+| §12: reverb with decay, damping, mix; delay with a practical maximum | Five fixed reverb voicings; delay limited to the documented 490 ms | The original has no reverb controls and documents its delay range (EV-019) |
+| §11.2: chorus with base delay, stereo phase and wet/dry levels exposed | Only SPEED, DEPTH, F.BACK, MIX; base delays fixed per documented mode | The documented controls (EV-020) |
+| §9.1: a `DriveModel` interface | One class configured per mode by profile data | No second structure yet; a measured model would replace it behind the same calls (plan §23) |
+| §8.1: `DetectorType` Peak/MeanSquare/QuasiRms; §11.1: four interpolations | Peak only; Linear and Cubic only | The others are added if a measurement calls for them |
+| §15: a `TailPolicy` enum | Crossfade behaviour only | The plan's default; the others wait for evidence of what the original does |
+| §3.3: L/Mono as a separate routing mode; §7.2: authenticity mode | Not yet | Not in Milestone 1's deliverables |
+| §6.2: hardware-rate mode | Not yet | Milestone 3 |
+| §13: `FixedPointProfile` | Not created | Disabled until evidence supports a configuration |
+| §17.2: no copied trade dress | A close replica of the panel, without the original's names, logo or artwork | Owner's decision, plan §17.2 amended |
+| §5 file layout: added | `AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h`, `ModelProfile.h`, `StepMapping`, `BypassCrossfade.h`, `DenormalGuard.h`, `Biquad`, `Oversampler`, `Waveshapers.h`, `Reverb`, `NoiseReduction`; the panel's `PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `docs/source-register.md`, `panel-specification.md` | Pieces the plan's sections or the evidence rules need |
+| §5 file layout: not yet | `ProgramDisplay` (Milestone 2), `tools/*` and `docs/measurement-protocol.md` (Milestone 4), `FixedPoint` | — |

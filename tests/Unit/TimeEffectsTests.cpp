@@ -127,7 +127,7 @@ double clickRatio(const TimeEffects::Settings& before, const TimeEffects::Settin
 
 // --- Delay ---------------------------------------------------------------------------------------
 
-TEST_CASE("Delay echoes at TIME × 100 ms + FINE × 10 ms, up to the documented 490 ms")
+TEST_CASE("Delay echoes at TIME x 100 ms + FINE x 10 ms, up to the documented 490 ms")
 {
     const double sampleRate = 48000.0;
     struct Case

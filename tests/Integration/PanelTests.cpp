@@ -103,7 +103,7 @@ TEST_CASE("The editor opens at the panel's proportions and keeps them when resiz
     }
 }
 
-TEST_CASE("The slide switch picks the row knobs A–E edit")
+TEST_CASE("The slide switch picks the row knobs A to E edit")
 {
     OpenEditor open;
     auto& p = open.panel();
@@ -175,7 +175,7 @@ TEST_CASE("The display shows the value being turned, and stand-by on a row chang
     CHECK(p.getDisplay().getText() == "15");
 }
 
-TEST_CASE("Footswitches 1–5 switch the effects, and their LEDs follow")
+TEST_CASE("Footswitches 1 to 5 switch the effects, and their LEDs follow")
 {
     OpenEditor open;
     auto& p = open.panel();

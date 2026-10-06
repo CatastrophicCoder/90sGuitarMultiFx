@@ -13,8 +13,8 @@ without touching DSP code:
 DocumentedParameter  →  NormalizedValue (0…1, host)  →  AlgorithmParameter (internal units)
 ```
 
-In Milestone 0 there is no documented layer yet; the host value maps directly to an engineering
-unit via JUCE's `NormalisableRange`, and the engine sanitises it again (`sanitiseGainDb`).
+Since Milestone 1 every documented control has all three layers (see "How the three layers connect"
+at the end). The plugin's own gains (input trim, output level) map directly to dB.
 
 ## Milestone 0 parameters
 
@@ -184,9 +184,15 @@ as in the manual; their index counts from 0, the documented mode from 1. All at 
 
 Defaults are placeholders: the manual documents no "initial" values.
 
-## Mapping template
+## How the three layers connect
 
-| Block | Documented label | Documented range / values | Source (SRC-nnn p.) | Status | Plugin ID | Normalised mapping | Algorithm parameter and unit | Mapping status | Notes |
-|-------|------------------|---------------------------|---------------------|--------|-----------|--------------------|------------------------------|----------------|-------|
-| *e.g. Compressor* | *as printed* | *as printed* | | CONFIRMED / INFERRED | | *linear / table* | | PLACEHOLDER / MEASURED | |
+Plan §7.3's layers, as implemented:
 
+| Layer | Where | Status |
+|-------|-------|--------|
+| Documented parameter: the control and its steps | "Documented hardware parameters" above; `documented::` in `src/core/ModelProfile.h` | CONFIRMED (SRC-001) |
+| Normalised value: what the host stores and automates | "Host parameters" above; `src/core/ParameterLayout.cpp`. A stepped integer or choice holding the documented step itself, so the host value maps 1:1 to the step | Design choice |
+| Algorithm parameter: dB, Hz, ms, gain | "Placeholder mappings" above; `src/core/StepMapping.cpp` reading `functionalPlaceholderProfile` | PLACEHOLDER, except values the manual states |
+
+To substitute measured values later, change the profile, not the parameters: the host parameters
+and saved sessions stay as they are.

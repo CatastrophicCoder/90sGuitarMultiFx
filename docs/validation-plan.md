@@ -41,19 +41,33 @@ stimuli) are empty until Milestone 1 and Milestone 4 respectively.
 | Full chain (plan §19.2) | `ChainTests.cpp`: the engine equals the documented order built by hand from the blocks, bit for bit, for all 32 on/off combinations; switching each effect on/off does not click (bound from measurement); an effect switched off and on starts clean; with oversampling the latency is identical with the drive on or off and the global bypass is the input delayed by exactly the latency; blocks longer than announced; long silence after loud input finite at all rates; no allocation while switching everything | Passing (M1 step 7) |
 | Plugin parameters | `PluginProcessorTests.cpp`: every documented control exists with its documented range and choices; host values reach the engine as the documented steps; full-state round trip; latency follows the oversampling setting, also when changed while running; every effect on through `processBlock`, mono in → stereo out | Passing (M1 step 7) |
 | Replica panel | `PanelTests.cpp`: seven-segment patterns and value formatting; editor opens at the panel's proportions and keeps them; the slide switch re-targets knobs A–E; every grid cell's knob reaches the parameter printed in it, empty cells are inactive; the display shows the value turned (MODEs counted from 1) and stand-by on a row change; footswitches 1–5 switch the effects and their LEDs follow; BYPASS and the blinking mode LEDs; the PEAK LED lights, holds and goes out; the selected row survives reopening the editor; pluginval's editor tests at strictness 10. A hidden snapshot test renders the panel for visual review | Passing (M1 step 8) |
+| Sample-rate and block-size changes (plan §19.2) | `Re-preparing at another sample rate and block size keeps working`: five rate/block/oversampling combinations in a row; every effect runs, all-off stays bit-exact (latency-aligned) | Passing (M1 step 9) |
 | Memory safety | Engine tests under AddressSanitizer and UndefinedBehaviorSanitizer (`build-asan`, see `CLAUDE.md`) | Clean (M1 step 7) |
 | Switching crossfade, denormals | `BypassCrossfadeTests.cpp`, `DenormalGuardTests.cpp` | Passing (M1 step 1) |
-| Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Passing: all jobs green on `ec6afd2` (macOS, Windows, Linux; Debug and Release). The first run failed on Linux (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca` |
+| Builds on Windows, macOS, Linux | `.github/workflows/build.yml` | Green through M1 step 5. From step 6 Windows failed: three test names contained non-ASCII characters, which CTest's filter mangles on Windows. Renamed in step 9; CI now rejects non-ASCII test names. Earlier, the first run failed on Linux (missing `libxi-dev`, then a PIC link error), fixed in `07fc0ca` |
 | Plugin validation | `auval -v aufx Nmf1 Ctcd`; pluginval strictness 10 on the VST3 and the AU | Passing locally (macOS) and in CI on `ec6afd2`: auval and pluginval on macOS, pluginval on Windows |
 | Plugin passes audio in a host (plan §21 M0, amended 2026-10-05) | Covered at the `processBlock` level above, and by auval and pluginval; not yet listened to in a DAW | Manual check outstanding |
+
+## Performance (plan §19.4)
+
+`ChainTests.cpp` "[.benchmark]" (hidden; run it on a Release build) prints the full chain's CPU
+use. Measured 2026-10-06, Apple silicon, Release, stereo, 48 kHz, 256-sample blocks, every effect on:
+
+| Oversampling | Average | Worst block |
+|--------------|---------|-------------|
+| Off | 0.31 % of one core | 0.50 % |
+| 2× | 1.17 % | 1.59 % |
+| 4× | 1.51 % | 1.92 % |
+
+Not an assertion: shared CI machines vary too much for a fixed bound.
 
 ## Not yet covered (planned)
 
 | Property | Plan | Milestone |
 |----------|------|-----------|
 | Program changes while running, crossfades | §19.2 | 2 |
-| Sample-rate changes during a session, offline vs real-time consistency | §19.2 | 1–3 |
-| Golden renders with tolerances | §19.3 | 1 |
-| Performance: per-block time, peak time, denormals | §19.4 | 1 |
+| Offline vs real-time output consistency | §19.2 | 2 (needs programs and host offline rendering) |
+| Golden renders with tolerances | §19.3 | 4–5: with placeholder algorithms a golden file would only freeze the placeholder sound; it becomes useful with references from the measurement tooling |
+| Guitar DI reference clips | §19.3 | 4 |
 | Static analysis in CI | §20 | not yet configured |
 | Fuzzing of state parsing | §21 M6 | 6 |

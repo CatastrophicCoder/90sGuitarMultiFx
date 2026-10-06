@@ -26,6 +26,14 @@ jobs:
       - name: Check formatting
         run: clang-format --dry-run --Werror $(git ls-files 'src/*.h' 'src/*.cpp' 'tests/*.h' 'tests/*.cpp')
 
+      # CTest passes a test's name to the test executable as its filter. On Windows that goes through
+      # the console code page, so a name with "×" or "–" arrives mangled and matches nothing.
+      - name: Check test names are ASCII
+        run: |
+          if grep -nP 'TEST_CASE\("[^"]*[^\x00-\x7F]' $(git ls-files 'tests/*.cpp'); then
+            echo "Test names must be ASCII (see above)."; exit 1
+          fi
+
   build:
     name: ${{ matrix.name }} (${{ matrix.config }})
     runs-on: ${{ matrix.os }}

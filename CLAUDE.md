@@ -24,8 +24,9 @@ Read these at the start of every session:
 - `docs/evidence-register.md`: what is known about the original unit versus assumed.
 - `docs/architecture.md`: how the code is put together, and where it differs from the plan's layout.
 
-**Current state:** Milestone 1 in progress (see `docs/PROGRESS.md`): the full chain and every
-documented control work, with the replica panel in Manual/Edit mode; docs (step 9) remain.
+**Current state:** Milestone 1 is done (see `docs/PROGRESS.md` for its acceptance and what carries
+over): the full chain, every documented control, and the replica panel in Manual/Edit mode. Next
+is Milestone 2, programs and workflow.
 
 ## How to work in this repo
 
@@ -163,6 +164,8 @@ audio thread and is swapped in atomically.
   fixed test mode (plan §19.3).
 - Exact float comparisons are fine where the behaviour is specified as bit-exact (unity gain,
   bypass); otherwise state a tolerance.
+- Test names are ASCII only: CTest passes them as filters, and on Windows "×" or "–" arrive
+  mangled and the test silently matches nothing (CI checks this).
 
 ## Code conventions
 

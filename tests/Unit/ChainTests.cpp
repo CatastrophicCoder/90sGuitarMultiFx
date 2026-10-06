@@ -10,6 +10,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <vector>
 
@@ -326,4 +327,72 @@ TEST_CASE("The full chain does not allocate, even while switching everything")
         allocations = counter.count();
     }
     CHECK(allocations == 0);
+}
+
+TEST_CASE("Re-preparing at another sample rate and block size keeps working")
+{
+    // A host may re-prepare at any time with new settings (plan §19.2). Each time, every effect must
+    // run, and with everything off the chain must still be bit-exact.
+    FiveAProcessor processor;
+    struct Setting
+    {
+        double sampleRate;
+        int blockSize;
+        int oversampling;
+    };
+    for (const auto& setting : {Setting{44100.0, 512, 1}, Setting{192000.0, 64, 4}, Setting{48000.0, 4096, 2},
+                                Setting{88200.0, 1, 1}, Setting{96000.0, 256, 4}})
+    {
+        INFO("fs " << setting.sampleRate << ", block " << setting.blockSize << ", oversampling "
+                   << setting.oversampling);
+        processor.setParameters(busySettings(31));
+        processor.prepare({setting.sampleRate, setting.blockSize, 2, setting.oversampling});
+        processor.reset();
+
+        PlanarBuffer busy{2, 8192};
+        busy.fillWithNoise(58);
+        processor.process(busy.view());
+        CHECK(fivea::test::allFinite(busy));
+        CHECK(fivea::test::peak(busy) > 0.0f);
+
+        ParameterSnapshot allOff;
+        processor.setParameters(allOff);
+        processor.reset();
+        PlanarBuffer quiet{2, 4096};
+        quiet.fillWithNoise(59);
+        const auto input = quiet.data();
+        processor.process(quiet.view());
+        const auto latency = static_cast<long>(processor.getLatencySamples());
+        for (std::size_t channel = 0; channel < 2; ++channel)
+            CHECK(std::equal(input[channel].begin(), input[channel].end() - latency,
+                             quiet.data()[channel].begin() + latency));
+    }
+}
+
+// Not a check: prints the full chain's CPU use. Only a Release build's figures mean anything.
+//   build-release/tests/fivea_engine_tests "[.benchmark]" -s
+TEST_CASE("Benchmark the full chain", "[.benchmark]")
+{
+    for (const int oversampling : {1, 2, 4})
+    {
+        auto processor = makeChain(48000.0, 2, busySettings(31), oversampling);
+        PlanarBuffer buffer{2, 256};
+        buffer.fillWithNoise(60);
+
+        const int blocks = 48000 * 10 / 256; // ten seconds of audio
+        double worstBlock = 0.0;
+        const auto start = std::chrono::steady_clock::now();
+        for (int block = 0; block < blocks; ++block)
+        {
+            const auto before = std::chrono::steady_clock::now();
+            processor.process(buffer.view());
+            worstBlock =
+                std::max(worstBlock, std::chrono::duration<double>(std::chrono::steady_clock::now() - before).count());
+        }
+        const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        const double blockSeconds = 256.0 / 48000.0;
+        WARN("all effects on, stereo, 48 kHz, oversampling " << oversampling << "x: " << 100.0 * seconds / 10.0
+                                                             << " % of one core on average, worst block "
+                                                             << 100.0 * worstBlock / blockSeconds << " %");
+    }
 }

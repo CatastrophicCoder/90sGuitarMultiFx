@@ -9,12 +9,39 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | In progress | Steps 1–8 of 9 done (2026-10-06): all effects, the full chain, every documented control, and the replica panel in Manual/Edit mode. Next: docs (step 9). |
+| 1 Complete functional chain | Done (2026-10-06), pending CI | All nine steps done; acceptance below. CI was green through step 5; Windows then failed on non-ASCII test names (fixed in step 9). Confirm the run after the step 9 push. |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
 | 5 Measurement-driven calibration | Not started | Needs access to a physical unit. |
 | 6 Release hardening | Not started | Packaging (`.pkg`/`.dmg`) and `CHANGELOG.md` arrive here, as in the other Catastrophic Audio projects. |
+
+## Milestone 1 acceptance (plan §21)
+
+| Criterion | Evidence | Result |
+|-----------|----------|--------|
+| Compressor, overdrive/distortion, 3-band EQ, chorus/flanger, delay/reverb | One block each in `src/dsp`, each with its own test file | Met |
+| Effect bypass | Per-effect crossfade, reset on fade-out, input fade for memory blocks (`ChainTests`) | Met |
+| Native sample-rate operation | Every block and the chain tested at 44.1, 48, 88.2, 96 and 192 kHz; re-preparing at new rates | Met |
+| Basic UI | The replica panel in Manual/Edit mode (beyond "basic", by decision) | Met |
+| All effects process audio | 32-combination test; every effect on through `processBlock` | Met |
+| Order matches the documented chain | The engine equals the documented order built by hand from the blocks, bit for bit, for all 32 combinations | Met |
+| All effect combinations work | Same test | Met |
+| No audio-thread allocation | Counting `operator new` around the full chain while switching everything; every block on its own | Met |
+| Automated tests pass | 144 tests, macOS Debug and Release locally; ASan/UBSan clean; pluginval strictness 10, auval. CI on `710a5e5`: macOS and Linux green (Debug, Release); Windows failed only the three non-ASCII-named tests | Met on macOS and Linux; Windows to confirm on the step 9 push |
+
+Outstanding manual checks (the owner's): listening in a DAW, and comparing the panel with the
+original.
+
+## Carried over to Milestone 2 and later
+
+- Program mode: 6 banks × 5 programs, bank 1 user-writable, WRITE, footswitch 6 (Program /
+  Manual-Edit), the display's bank number and dot, state schema with bank/program/name (plan §21 M2).
+- Development presets for banks 2–6, named as such (plan §3.2); only 2-1 "METAL 1" is documented.
+- The volume pedal input (EV-016), left out of Milestone 1 by decision.
+- L/Mono routing mode (plan §3.3) and authenticity mode (plan §7.2).
+- Hardware-rate mode (Milestone 3); measurement tooling (Milestone 4); golden renders (4–5).
+- CI: static analysis; the GitHub actions still target the deprecated Node.js 20.
 
 ## Decisions
 
@@ -156,3 +183,10 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   processor first (as a host does), which JUCE asserted on silently since Milestone 0 and which
   became a crash when reopening the editor; fixed in all editor tests. 143 tests; pluginval's
   editor tests pass at strictness 10.
+- M1 step 9: docs brought in line (architecture rewritten for the Milestone 1 design, with every
+  departure from the plan; parameter layers; validation plan; this file). Added a sample-rate and
+  block-size re-prepare test and a CPU benchmark (0.31 / 1.17 / 1.51 % of one core for the full
+  chain at 1× / 2× / 4×, worst block under 2 %). CI had failed on Windows since step 6 without my
+  noticing: three test names held "×" or "–", which CTest's filter mangles on Windows; renamed,
+  and CI now rejects non-ASCII test names. Golden renders moved to Milestones 4–5 (with
+  placeholder algorithms they would only freeze placeholder sound).
