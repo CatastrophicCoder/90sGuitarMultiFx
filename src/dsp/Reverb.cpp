@@ -78,9 +78,13 @@ void Reverb::prepare(double newSampleRate, const ReverbProfile& reverbProfile)
 
 void Reverb::setVoicing(const ReverbVoicing& voicing) noexcept
 {
+    // Safe before prepare(), when the buffers are still empty: settings may arrive first (the plugin
+    // passes them before preparing), and std::clamp with an upper bound below its lower one is
+    // undefined (MSVC's Debug runtime stops on it). The engine sets the voicing again once prepared.
     auto fit = [](Line& line, int samples)
     {
-        line.length = std::clamp(samples, 1, static_cast<int>(line.buffer.size()));
+        const int capacity = static_cast<int>(line.buffer.size());
+        line.length = capacity > 0 ? std::clamp(samples, 1, capacity) : 1;
         line.position = 0;
     };
 

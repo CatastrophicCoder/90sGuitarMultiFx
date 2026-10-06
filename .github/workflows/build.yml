@@ -84,12 +84,18 @@ jobs:
       # FIVEA_COPY_PLUGIN is on by default for Release. Left on for macOS, where it puts the AU where
       # auval finds it; off on Windows, where JUCE's default VST3 destination is under Program
       # Files and a failed copy would end the build before it says anything about the code.
+      # Linux Debug is also a checked build: libstdc++ verifies preconditions (container bounds,
+      # std::clamp's bounds) and stops on misuse, as MSVC's Debug runtime does on Windows. There a
+      # violation shows as a dialog nobody answers, so it is clearer to catch it here first.
       - name: Configure
         shell: bash
         run: |
-          copy_flag=""
-          if [ "$RUNNER_OS" = "Windows" ]; then copy_flag="-DFIVEA_COPY_PLUGIN=OFF"; fi
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} $copy_flag
+          extra=""
+          if [ "$RUNNER_OS" = "Windows" ]; then extra="-DFIVEA_COPY_PLUGIN=OFF"; fi
+          if [ "$RUNNER_OS" = "Linux" ] && [ "${{ matrix.config }}" = "Debug" ]; then
+            extra="-DCMAKE_CXX_FLAGS=-D_GLIBCXX_ASSERTIONS"
+          fi
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }} $extra
 
       - name: Build
         run: cmake --build build

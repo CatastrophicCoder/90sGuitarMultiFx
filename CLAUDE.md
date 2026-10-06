@@ -92,6 +92,13 @@ cmake -B build-asan -G Ninja -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
 cmake --build build-asan --target fivea_engine_tests && ASAN_OPTIONS=detect_leaks=0 build-asan/tests/fivea_engine_tests
 
+# a checked build: libc++ verifies container bounds and std:: preconditions, as MSVC's Debug
+# runtime does (where a violation hangs CI behind a dialog). Run before pushing anything that
+# touches buffer or index handling.
+cmake -B build-hardened -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_CXX_FLAGS="-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG"
+cmake --build build-hardened && ctest --test-dir build-hardened
+
 # render the panel to PNG files, to look at it
 FIVEA_SNAPSHOT_DIR=<dir> build/tests/fivea_plugin_tests "[.snapshot]"
 
@@ -164,6 +171,8 @@ audio thread and is swapped in atomically.
   fixed test mode (plan §19.3).
 - Exact float comparisons are fine where the behaviour is specified as bit-exact (unity gain,
   bypass); otherwise state a tolerance.
+- A block's settings may arrive before `prepare()` (the plugin passes them first): setters must not
+  touch buffers that `prepare()` has not sized yet.
 - Test names are ASCII only: CTest passes them as filters, and on Windows "×" or "–" arrive
   mangled and the test silently matches nothing (CI checks this).
 

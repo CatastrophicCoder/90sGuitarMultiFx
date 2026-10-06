@@ -190,3 +190,13 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   noticing: three test names held "×" or "–", which CTest's filter mangles on Windows; renamed,
   and CI now rejects non-ASCII test names. Golden renders moved to Milestones 4–5 (with
   placeholder algorithms they would only freeze placeholder sound).
+- After the step 9 push: Windows Debug had not finished its tests since step 7 (runs cancelled
+  after 13–22 minutes, then over an hour). Cause, found with libc++'s hardened (bounds-checking)
+  mode on macOS: `Reverb::setVoicing` called `std::clamp` with an empty buffer's size as the upper
+  bound when settings arrived before `prepare()`, which the plugin's own `prepareToPlay()` does.
+  Undefined behaviour; harmless in practice elsewhere, but MSVC's Debug runtime stops on it with a
+  dialog that nobody answers on CI. Fixed in `Reverb`, with a regression test. To make such
+  failures visible: Windows test executables now print CRT errors instead of opening dialogs,
+  every test has a 300 s CTest timeout, the slowest test was cut from 10 s to 2 s, and the Linux
+  Debug CI job builds with libstdc++ assertions. Engine and plugin tests pass in the hardened
+  build.

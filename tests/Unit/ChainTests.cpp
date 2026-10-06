@@ -283,20 +283,22 @@ TEST_CASE("Blocks longer than announced are processed the same as announced ones
     CHECK(render(1) == render(512));
 }
 
-TEST_CASE("The full chain stays finite on long silence after loud input, at every rate")
+TEST_CASE("The full chain stays finite on long silence after loud input, at the lowest and highest rates")
 {
-    const double sampleRate = GENERATE(44100.0, 96000.0, 192000.0);
+    // Kept short: MSVC's checked Debug containers make long renders very slow, and a reverb tail
+    // reaches denormal range within a few seconds anyway.
+    const double sampleRate = GENERATE(44100.0, 192000.0);
     auto snapshot = busySettings(31);
     snapshot.timeEffects = {.mode = 2, .mix = 15};
     auto processor = makeChain(sampleRate, 2, snapshot, 4);
 
-    PlanarBuffer loud{2, static_cast<int>(sampleRate)};
+    PlanarBuffer loud{2, static_cast<int>(sampleRate / 2)};
     loud.fillWithNoise(54);
     processor.process(loud.view());
     CHECK(fivea::test::allFinite(loud));
 
-    PlanarBuffer silence{2, static_cast<int>(sampleRate)};
-    for (int second = 0; second < 10; ++second)
+    PlanarBuffer silence{2, static_cast<int>(sampleRate / 2)};
+    for (int half = 0; half < 5; ++half)
     {
         silence.fill(0.0f);
         processor.process(silence.view());
@@ -394,5 +396,29 @@ TEST_CASE("Benchmark the full chain", "[.benchmark]")
         WARN("all effects on, stereo, 48 kHz, oversampling " << oversampling << "x: " << 100.0 * seconds / 10.0
                                                              << " % of one core on average, worst block "
                                                              << 100.0 * worstBlock / blockSeconds << " %");
+    }
+}
+
+TEST_CASE("Settings may arrive before the first prepare, in every mode")
+{
+    // The plugin passes the parameters before preparing the engine. Before prepare() nothing is
+    // allocated yet; every block must accept settings anyway (a checked build stops on misuse).
+    for (int mode = 1; mode <= 7; ++mode)
+    {
+        auto snapshot = busySettings(31);
+        snapshot.timeEffects.mode = mode;
+        snapshot.modulation.mode = 1 + mode % 5;
+        snapshot.drive.mode = 1 + mode % 2;
+
+        FiveAProcessor processor;
+        processor.setParameters(snapshot);
+        processor.prepare({48000.0, 256, 2, 2});
+        processor.setParameters(snapshot);
+
+        PlanarBuffer buffer{2, 4800};
+        buffer.fillWithNoise(61);
+        processor.process(buffer.view());
+        INFO("Reverb/Delay MODE " << mode);
+        CHECK(fivea::test::allFinite(buffer));
     }
 }
