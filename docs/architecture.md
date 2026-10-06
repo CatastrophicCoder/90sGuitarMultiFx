@@ -126,7 +126,8 @@ attributes in Milestone 2 under a schema-version bump only if the change is not 
 | Added in M1 step 2: `src/dsp/Biquad.h/.cpp`, `src/dsp/ThreeBandEq.h/.cpp` | `ThreeBandEq` per plan §5; `Biquad` holds the cookbook designs and the filter they run in, shared with later blocks. |
 | Not created: `FixedPoint` | Plan §13: disabled until evidence supports a configuration; not needed for Milestone 1. |
 | Added in M1 step 1: `src/core/ModelProfile.h`, `src/core/StepMapping.h/.cpp`, `src/dsp/BypassCrossfade.h`, `src/dsp/DenormalGuard.h` | Plan §14 (one profile for hardware values) and §7.3 (documented step → algorithm value); §15 switching; denormals inside the JUCE-free engine. |
-| Not yet created: `src/ui/ProgramDisplay` | Bank/program workflow is Milestone 2. |
+| Not yet created: `src/ui/ProgramDisplay` | Bank/program workflow is Milestone 2; the panel's display already exists (`SevenSegmentDisplay`). |
+| Added in M1 step 8: `src/ui/PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `MainPanel` rebuilt; `EffectSection` removed | The replica panel (`docs/panel-specification.md`). |
 | Not yet created: `tools/*`, `docs/measurement-protocol.md` | Milestone 4. Directories exist. |
 | Added `docs/source-register.md` early | The evidence register needs somewhere to cite sources. |
 | Removed the CLion template `main.cpp` | Replaced by the plugin targets. |

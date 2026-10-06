@@ -25,7 +25,7 @@ Read these at the start of every session:
 - `docs/architecture.md`: how the code is put together, and where it differs from the plan's layout.
 
 **Current state:** Milestone 1 in progress (see `docs/PROGRESS.md`): the full chain and every
-documented control work; the replica panel (step 8) and docs (step 9) remain.
+documented control work, with the replica panel in Manual/Edit mode; docs (step 9) remain.
 
 ## How to work in this repo
 
@@ -90,6 +90,9 @@ cmake -B build-asan -G Ninja -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
     -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
 cmake --build build-asan --target fivea_engine_tests && ASAN_OPTIONS=detect_leaks=0 build-asan/tests/fivea_engine_tests
+
+# render the panel to PNG files, to look at it
+FIVEA_SNAPSHOT_DIR=<dir> build/tests/fivea_plugin_tests "[.snapshot]"
 
 # formatting, as CI checks it (clang-format 18.1.8)
 clang-format -i $(git ls-files 'src/*.h' 'src/*.cpp' 'tests/*.h' 'tests/*.cpp')

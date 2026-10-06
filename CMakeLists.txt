@@ -98,7 +98,19 @@ target_sources(FiveAPlugin PRIVATE
     src/plugin/PluginProcessor.cpp
     src/plugin/PluginEditor.cpp
     src/ui/MainPanel.cpp
-    src/ui/EffectSection.cpp)
+    src/ui/PanelControls.cpp
+    src/ui/PanelLookAndFeel.cpp
+    src/ui/SevenSegmentDisplay.cpp)
+
+# The panel's lettering, Barlow Condensed (SIL Open Font License 1.1, resources/fonts), embedded so
+# the panel looks the same on every platform.
+juce_add_binary_data(FiveAPanelFonts
+    NAMESPACE PanelFonts
+    HEADER_NAME PanelFonts.h
+    SOURCES
+        resources/fonts/BarlowCondensed-Regular.ttf
+        resources/fonts/BarlowCondensed-SemiBold.ttf)
+set_target_properties(FiveAPanelFonts PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_compile_definitions(FiveAPlugin PUBLIC
     JUCE_WEB_BROWSER=0
@@ -108,6 +120,7 @@ target_compile_definitions(FiveAPlugin PUBLIC
 
 target_link_libraries(FiveAPlugin
     PRIVATE
+        FiveAPanelFonts
         juce::juce_audio_utils
         juce::juce_recommended_warning_flags
     PUBLIC

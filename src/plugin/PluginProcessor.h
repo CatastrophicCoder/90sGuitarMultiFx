@@ -60,6 +60,14 @@ public:
     // prepare, and reports the new latency. Called by a timer; public so tests can call it.
     void applyOversamplingSetting();
 
+    // The input peak since the last call, after the input trim: the PEAK LED's source. Written by
+    // the audio thread, taken (and cleared) by the editor's timer.
+    [[nodiscard]] float takeInputPeak() noexcept { return inputPeak.exchange(0.0f, std::memory_order_relaxed); }
+
+    // Which row the panel's slide switch selects (1–6, SRC-001 p. 2). Editor state only: it lives
+    // here so it survives the editor being closed and reopened.
+    std::atomic<int> selectedRow{1};
+
 private:
     void timerCallback() override { applyOversamplingSetting(); }
     [[nodiscard]] int requestedOversampling() const noexcept;
@@ -102,6 +110,7 @@ private:
     std::atomic<float>* driveOversampling = nullptr;
 
     FiveAProcessor engine;
+    std::atomic<float> inputPeak{0.0f};
     double preparedSampleRate = 0.0;
     int preparedBlockSize = 0;
     int preparedOversampling = 1;

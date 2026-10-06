@@ -144,7 +144,20 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
             buffer.clear(channel, 0, numSamples);
     }
 
-    engine.setParameters(readParameterSnapshot());
+    const auto snapshot = readParameterSnapshot();
+
+    // PEAK LED: after the input trim, before the effects, like the original's (it follows the
+    // INPUT level control and gain stage, ahead of the A/D: SRC-002 PDF p. 10).
+    float peak = 0.0f;
+    for (int channel = 0; channel < outputChannels; ++channel)
+        peak = std::max(peak, buffer.getMagnitude(channel, 0, numSamples));
+    peak *= decibelsToGain(sanitiseGainDb(snapshot.inputTrimDb));
+    float previous = inputPeak.load(std::memory_order_relaxed);
+    while (peak > previous && !inputPeak.compare_exchange_weak(previous, peak, std::memory_order_relaxed))
+    {
+    }
+
+    engine.setParameters(snapshot);
     engine.process({buffer.getArrayOfWritePointers(), outputChannels, numSamples});
 }
 

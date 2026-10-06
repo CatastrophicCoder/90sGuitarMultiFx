@@ -25,6 +25,7 @@ catch_discover_tests(fivea_engine_tests TEST_PREFIX "engine: ")
 # shared-code archive, which already contains the compiled JUCE modules. Linking the modules again
 # would compile a second copy, so only their include paths and definitions are borrowed.
 add_executable(fivea_plugin_tests
+    Integration/PanelTests.cpp
     Integration/PluginProcessorTests.cpp)
 
 target_include_directories(fivea_plugin_tests PRIVATE

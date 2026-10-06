@@ -7,7 +7,7 @@ guitar multi-effect floor unit, referred to here as "the original unit".
 unit's five-effect chain (compressor, distortion/overdrive, 3-band EQ, chorus/flanger,
 reverb/delay), noise reduction and master volume, each control with its original steps. **Every
 algorithm is a placeholder:** the controls and their documented values match the original, the
-sound does not claim to. The editor is still a basic one. See `docs/implementation-plan.md` for the
+sound does not claim to. The editor is a replica of the original's front panel, in its Manual/Edit mode. See `docs/implementation-plan.md` for the
 roadmap and `docs/evidence-register.md` for what is known versus assumed.
 
 ## Requirements
@@ -69,7 +69,8 @@ clang-format -i $(git ls-files 'src/*.h' 'src/*.cpp' 'tests/*.h' 'tests/*.cpp')
 | `src/core` | Engine façade (`FiveAProcessor`, pure C++), parameter IDs, parameter layout and state (JUCE) |
 | `src/dsp` | DSP building blocks (only gain smoothing so far) |
 | `src/plugin` | JUCE `AudioProcessor` and editor |
-| `src/ui` | Editor components |
+| `src/ui` | The replica panel: layout, look-and-feel, controls, LED display |
+| `resources/fonts` | Barlow Condensed (SIL OFL), embedded in the plugin, with its licence |
 | `tests/Unit` | Engine tests, no JUCE |
 | `tests/Integration` | Plugin tests through the `AudioProcessor` API |
 | `docs` | Architecture, evidence and source registers, parameter specification, validation plan |

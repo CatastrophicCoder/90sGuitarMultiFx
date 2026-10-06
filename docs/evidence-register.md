@@ -70,12 +70,14 @@ system; per plan §13 they are not turned into filters, noise or bit reduction.
 | EV-115 | Reverb: compact feedback delay network (pre-delay, 4 allpass diffusers, 8 lines, Hadamard matrix, Jot–Chaigne absorption filters, decorrelated L/R taps), five fixed voicings (decay 2.4/3.0/0.8/1.8/1.4 s, high-frequency decay ratio 0.5/0.45/0.6/0.75/0.55, size, pre-delay, diffusion); mono input (the channels' average), stereo output | PLACEHOLDER | Mode names documented, no reverb controls on the unit (EV-019); the algorithm and voicings are this project's choice | `dsp/Reverb`, voicings in `ModelProfile.h`. Measured decay within 3.5 % of each voicing's set value. | — | Every voicing's impulse response, decay, early reflections, modulation, stereo correlation: measure (plan §12.3). |
 | EV-116 | Delay: documented TIME/FINE times (max 490 ms), feedback with a 5 kHz low-pass in the repeat path only, a TIME/FINE change crossfades between read positions over 20 ms; Echoverb = 0.7 × echoes + 0.7 × reverb of dry and echoes, with the Hall voicing; a MODE change crossfades the old tail out over 100 ms while the new mode's input fades in, and a further change waits for that crossfade | PLACEHOLDER | Times documented (EV-019); Echoverb documented only as "a combination of reverb and delay" | `dsp/TimeEffects`. Plan §15 Crossfade tail policy. | — | Repeat filtering, Echoverb's structure, what the unit does with tails on a mode or program change (plan §12.3). |
 | EV-117 | Noise reduction: downward expander (ratio 4, at most 80 dB), peak level linked across channels, opens in 1 ms and closes in 80 ms; NR LEVEL 1–15 sets the threshold −90…−48 dBFS; placed first in the chain; MASTER is an output gain placed last | PLACEHOLDER | NR LEVEL and MASTER documented as controls only (EV-014, EV-015) | `dsp/NoiseReduction`; chain in `core/FiveAProcessor`. | — | NR's algorithm and position; MASTER's law and position (plan §3, measurement). |
+| EV-118 | PEAK LED threshold −3 dBFS after the input trim, held 100 ms | PLACEHOLDER (design choice) | Documented only as "adjust the input level so that the Peak Indicator occasionally, but not constantly, lights up" (SRC-001 p. 2, 4); it is driven by the CPU from the input gain stage (SRC-002 PDF p. 10, 11) | `ui/MainPanel`, peak from `PluginProcessor::takeInputPeak()`. | — | The original's threshold relative to its A/D's full scale: measure. |
 
 ## Change log
 
 | Date | Change |
 |------|--------|
 | 2026-10-04 | Register created for Milestone 0. All CONFIRMED rows taken from the plan, pending primary citations. |
+| 2026-10-06 | M1 step 8: EV-118 (PEAK LED threshold) added. |
 | 2026-10-05 | M1 step 7: EV-117 (noise reduction, MASTER) added; EV-104 and EV-108 updated for the full chain. |
 | 2026-10-05 | M1 step 6: EV-115 (reverb) and EV-116 (delay, echoverb, tail crossfade) added. |
 | 2026-10-05 | M1 step 5: EV-114 (chorus/flanger structure) added. |

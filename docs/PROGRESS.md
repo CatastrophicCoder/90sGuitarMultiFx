@@ -9,7 +9,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | In progress | Steps 1–7 of 9 done (2026-10-05): all effects, the full chain and every documented control as a host parameter. Next: the replica panel (step 8), docs (step 9). |
+| 1 Complete functional chain | In progress | Steps 1–8 of 9 done (2026-10-06): all effects, the full chain, every documented control, and the replica panel in Manual/Edit mode. Next: docs (step 9). |
 | 2 Programs and workflow | Not started | |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
@@ -59,6 +59,10 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   original is "the original unit". Code identifiers renamed (`FiveAProcessor`, namespace
   `fivea`, target `FiveAPlugin`, `FIVEA_*` options); the plan file renamed to
   `docs/implementation-plan.md`. Git history is left as it is.
+
+- 2026-10-06 (Milestone 1 step 8): the 2-digit LED display is **drawn in code** (vector
+  seven-segment shapes, no font); panel lettering uses **Barlow Condensed** (SIL Open Font
+  License), embedded with its licence text.
 
 ## Session log
 
@@ -140,3 +144,15 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   (made every combination fail), and a latency check on a 100 Hz sine was fooled by the drive's
   phase shift. A macro with the old model name was caught and renamed. 133 tests; eight checked
   by breaking the code; engine tests clean under ASan and UBSan.
+
+### 2026-10-06
+
+- M1 step 8: the replica panel. Drawn entirely in code in one design space measured from the
+  reference photo (1905 × 883), scaled to the window; Barlow Condensed embedded; the LED display
+  drawn as seven-segment shapes. Manual/Edit-mode workflow: slide switch re-targets knobs A–E,
+  display shows the value or stand-by, footswitches switch effects with LEDs, BYPASS blinks the
+  mode LEDs, PEAK LED from the input. Program mode, banks and WRITE drawn but inactive
+  (Milestone 2). Found while testing: the tests had been closing editors without telling the
+  processor first (as a host does), which JUCE asserted on silently since Milestone 0 and which
+  became a crash when reopening the editor; fixed in all editor tests. 143 tests; pluginval's
+  editor tests pass at strictness 10.

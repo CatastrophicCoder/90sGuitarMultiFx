@@ -18,8 +18,9 @@ No brand or model name of the original appears anywhere in the UI.
 
 ## Overall
 
-- Footprint 430 × 205 mm (SRC-001 p. 14), aspect ≈ 2.1 : 1. Default editor size 1290 × 615 px,
-  resizable in proportion.
+- Footprint 430 × 205 mm (SRC-001 p. 14). The editor uses the face as seen from above in SRC-003,
+  1905 × 883 design units (aspect 2.16 : 1, `src/ui/PanelLayout.h`), scaled as one canvas. Default
+  editor size 1290 × 598 px, resizable from 860 to 2580 px wide at the same proportions.
 - Two zones: the sloped **upper panel** (≈ 48 % of the height) and the **footswitch deck**
   (≈ 52 %), separated by a **red stripe** that carries the effect names.
 - Colours: black housing and panel, a slightly lighter upper panel than deck, red graphics (stripe,
@@ -67,7 +68,7 @@ Matrix cell text, as printed (SRC-001 p. 2; SRC-003):
 | Control | Original | Plugin | Milestone |
 |---------|----------|--------|-----------|
 | INPUT, OUTPUT knobs | Analog level pots | `inputTrim`, `outputLevel` | 1 |
-| PEAK LED | Lights on input peaks; set INPUT so it lights occasionally | Input peak indicator (plan §7.2) | 1 |
+| PEAK LED | Lights on input peaks; set INPUT so it lights occasionally | Lights at −3 dBFS after the input trim, held 100 ms (threshold a placeholder, EV-118) | 1 |
 | Slide switch | Program mode: selects bank 1–6. Edit mode: selects the row knobs A–E edit | Edit-mode row selection in M1; bank selection in M2 | 1 / 2 |
 | Knobs A–E | Edit the selected row's parameters | Same. Difference: the hardware pots are absolute and shared across rows; the plugin's knobs show the selected row's current values (no jump) | 1 |
 | Display | Bank in Program mode; value of the knob being turned in Edit mode; "--" on edit stand-by; dot = value equals the stored program | Value and stand-by in M1; bank and dot in M2 | 1 / 2 |
@@ -78,6 +79,17 @@ Matrix cell text, as printed (SRC-001 p. 2; SRC-003):
 
 ## Typography
 
-The panel uses a condensed sans-serif for labels and a 7-segment LED display. The replica embeds
-open-licensed fonts (as the other Catastrophic Audio projects do); which ones is decided with the
-UI step, since adding a font is a new third-party asset.
+The panel uses a condensed sans-serif for labels and a 7-segment LED display (owner's decisions
+2026-10-06):
+
+- Labels: **Barlow Condensed** (SIL Open Font License 1.1), embedded in the plugin with its licence
+  text, as the other Catastrophic Audio projects embed their fonts.
+- The 2-digit display: **drawn in code** as seven-segment shapes with a decimal point, lit and unlit
+  segments, so no display font is needed.
+
+## Implementation (Milestone 1)
+
+`src/ui/MainPanel` paints the fixed artwork and positions the controls in design units;
+`PanelLookAndFeel` (colours, lettering, knobs), `PanelControls` (knobs, LEDs, footswitches, keys,
+slide switch) and `SevenSegmentDisplay` draw everything in code. Render it to PNG files with
+`FIVEA_SNAPSHOT_DIR=<dir> build/tests/fivea_plugin_tests "[.snapshot]"`.

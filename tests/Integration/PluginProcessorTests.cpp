@@ -270,10 +270,16 @@ TEST_CASE("The editor opens and closes")
 {
     FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
-    std::unique_ptr<juce::AudioProcessorEditor> editor{processor.createEditorAndMakeActive()};
+    auto* editor = processor.createEditorAndMakeActive();
 
     REQUIRE(editor != nullptr);
     CHECK(editor->getWidth() > 0);
+    CHECK(processor.getActiveEditor() == editor);
+
+    // As a host does: tell the processor before deleting the editor.
+    processor.editorBeingDeleted(editor);
+    delete editor;
+    CHECK(processor.getActiveEditor() == nullptr);
 }
 
 // --- The documented controls (Milestone 1) -------------------------------------------------------
