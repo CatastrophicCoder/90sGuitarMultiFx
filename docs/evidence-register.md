@@ -82,12 +82,14 @@ system; per plan §13 they are not turned into filters, noise or bit reduction.
 | EV-121 | A saved session stores the selected program and the panel's mode, and reopens in that mode; a new instance starts in Program mode | PLACEHOLDER (design choice) | The original always powers on in Program mode (EV-029); a DAW session is closer to a saved setup than to a power cycle | `core/PresetState` (schema 2). | — | — |
 | EV-122 | A program change dips the output: 10 ms raised-cosine fade-out on the old program's settings, the switch and a reset of every effect at the silent sample (tails are cut), then a 10 ms raised-cosine fade-in applied to the effects' input. Skipped under global bypass, where the output is the dry signal | PLACEHOLDER (design choice) | Owner's decision 2026-10-07; how the original sounds while changing program is not documented | `core/ProgramTransition`, `PluginProcessor::processBlock`; times in `SwitchingProfile`. Click ratio 0.04–8.6 against a bound of 20 over every factory program (`ProgramChangeTests`). | — | The original's behaviour: measurable on a unit (Milestone 4). |
 | EV-123 | After Program Write the written slot becomes the selected program, and keeps the source program's name | PLACEHOLDER (design choice) | SRC-001 p. 8 describes the write but not what is selected afterwards; the original shows no names | `PluginProcessor::writeProgram`. | — | What the original selects after a write. |
+| EV-124 | Panel details the manual leaves open: knobs A–E do nothing in Program mode (the manual describes editing in Edit mode only); the EFCT/PROG LEDs are unlit while another bank is pending; the display keeps flashing "1" after a WRITE destination is picked, which lights that footswitch's LED; WRITE before a destination is picked does nothing; the BYPASS blink is on the lit mode LED | INFERRED (knobs); PLACEHOLDER (design choice) for the rest | SRC-001 pp. 4–9 | `ui/MainPanel`. | — | All of them: observable on a unit. |
 
 ## Change log
 
 | Date | Change |
 |------|--------|
 | 2026-10-04 | Register created for Milestone 0. All CONFIRMED rows taken from the plan, pending primary citations. |
+| 2026-10-07 | M2 step 5: EV-124 (panel details) added. |
 | 2026-10-07 | M2 step 4: EV-122 (program-change dip) and EV-123 (after a write) added; EV-119 updated (a new instance plays 1-1). |
 | 2026-10-07 | M2 step 3: EV-121 (sessions save the mode) added. |
 | 2026-10-07 | M2 step 2: EV-010 updated (METAL 1 shipped in 2-1, development presets elsewhere); EV-120 (bank 1 sources, METAL 1's undocumented controls) added. |

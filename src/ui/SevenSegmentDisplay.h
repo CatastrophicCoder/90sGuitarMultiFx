@@ -23,6 +23,7 @@ public:
 
     void showValue(int value);
     void showStandBy();
+    void showBlank(); // both digits dark: the off half of a flash
     void setDot(bool lit);
 
     [[nodiscard]] const juce::String& getText() const noexcept { return text; }
@@ -31,6 +32,7 @@ public:
     void paint(juce::Graphics& g) override;
 
 private:
+    void showText(const juce::String& newText);
     void paintDigit(juce::Graphics& g, juce::Rectangle<float> area, std::uint8_t segments) const;
 
     juce::String text{"--"};

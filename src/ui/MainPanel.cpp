@@ -1,9 +1,12 @@
 #include "ui/MainPanel.h"
 
 #include "core/ParameterIds.h"
+#include "plugin/PluginProcessor.h"
 #include "ui/PanelLayout.h"
 
 #include <cmath>
+#include <optional>
+#include <string_view>
 
 namespace fivea::ui
 {
@@ -27,6 +30,15 @@ float rowCentre(std::size_t row)
     return gridTop + (static_cast<float>(row) + 0.5f) * gridRowHeight;
 }
 
+// The program control a grid cell's parameter belongs to, for the display's dot.
+std::optional<ProgramControl> controlFor(const char* parameterId)
+{
+    for (int index = 0; index < numProgramControls; ++index)
+        if (std::string_view{parameterIdFor(static_cast<ProgramControl>(index))} == parameterId)
+            return static_cast<ProgramControl>(index);
+    return std::nullopt;
+}
+
 void drawDownTriangle(juce::Graphics& g, float centreX, float top, float size)
 {
     juce::Path triangle;
@@ -35,11 +47,10 @@ void drawDownTriangle(juce::Graphics& g, float centreX, float top, float size)
 }
 } // namespace
 
-MainPanel::MainPanel(juce::AudioProcessorValueTreeState& state, std::atomic<int>& selectedRow,
-                     std::function<float()> takeInputPeak)
-    : parameters(state)
-    , selectedRowStore(selectedRow)
-    , takePeak(std::move(takeInputPeak))
+MainPanel::MainPanel(PluginProcessor& pluginProcessor)
+    : processor(pluginProcessor)
+    , parameters(pluginProcessor.getParameterState())
+    , selectedRowStore(pluginProcessor.selectedRow)
 {
     setLookAndFeel(&lookAndFeel);
     addAndMakeVisible(canvas);
@@ -52,9 +63,9 @@ MainPanel::MainPanel(juce::AudioProcessorValueTreeState& state, std::atomic<int>
 
     canvas.addAndMakeVisible(peakLed);
     canvas.addAndMakeVisible(slide);
-    slide.onChange = [this](int row)
+    slide.onChange = [this](int position)
     {
-        bindRow(row);
+        slideMoved(position);
     };
 
     for (std::size_t index = 0; index < parameterKnobs.size(); ++index)
@@ -69,7 +80,10 @@ MainPanel::MainPanel(juce::AudioProcessorValueTreeState& state, std::atomic<int>
     canvas.addAndMakeVisible(display);
 
     canvas.addAndMakeVisible(writeKey);
-    writeKey.setEnabled(false); // Program Write is Milestone 2
+    writeKey.onClick = [this]
+    {
+        writeKeyClicked();
+    };
     canvas.addAndMakeVisible(bypassKey);
     bypassKey.setClickingTogglesState(true);
     bypassAttachment = std::make_unique<ButtonAttachment>(parameters, ParameterIds::globalBypass, bypassKey);
@@ -77,14 +91,10 @@ MainPanel::MainPanel(juce::AudioProcessorValueTreeState& state, std::atomic<int>
     for (std::size_t index = 0; index < footSwitches.size(); ++index)
     {
         canvas.addAndMakeVisible(footSwitches[index]);
-        if (index < 5)
+        footSwitches[index].onClick = [this, index]
         {
-            footSwitches[index].setClickingTogglesState(true);
-            footSwitchAttachments[index] =
-                std::make_unique<ButtonAttachment>(parameters, ParameterIds::effectEnabled[index], footSwitches[index]);
-        }
-        else
-            footSwitches[index].setEnabled(false); // Program/Manual-Edit switching is Milestone 2
+            footSwitchClicked(static_cast<int>(index));
+        };
     }
 
     for (auto& led : effectLeds)
@@ -95,7 +105,7 @@ MainPanel::MainPanel(juce::AudioProcessorValueTreeState& state, std::atomic<int>
     layOutControls();
 
     slide.setPosition(juce::jlimit(1, 6, selectedRowStore.load()), juce::dontSendNotification);
-    bindRow(slide.getPosition());
+    configureForMode();
     updateIndicators();
     startTimerHz(timerHz);
 }
@@ -155,6 +165,117 @@ void MainPanel::selectRow(int row)
     slide.setPosition(row, juce::sendNotificationSync);
 }
 
+void MainPanel::pressFootSwitch(int index)
+{
+    auto& button = footSwitches[static_cast<std::size_t>(index)];
+    if (button.getClickingTogglesState())
+        button.setToggleState(!button.getToggleState(), juce::sendNotificationSync);
+    else if (button.onClick)
+        button.onClick();
+}
+
+void MainPanel::pressWriteKey()
+{
+    writeKeyClicked();
+}
+
+void MainPanel::slideMoved(int position)
+{
+    selectedRowStore.store(position);
+    if (processor.getProgramState().mode == ProgramMode::Program)
+        processor.getProgramState().selection.showBank(position); // shown, not yet entered
+    else
+        bindRow(position);
+}
+
+void MainPanel::footSwitchClicked(int index)
+{
+    auto& programs = processor.getProgramState();
+    if (index == 5) // mode select: cancels a write, otherwise toggles the mode
+    {
+        if (writePending)
+        {
+            writePending = false;
+            configureForMode();
+        }
+        else
+            setMode(programs.mode == ProgramMode::Program ? ProgramMode::ManualEdit : ProgramMode::Program);
+        return;
+    }
+
+    if (writePending)
+        writeDestination = index + 1;
+    else if (programs.mode == ProgramMode::Program)
+        processor.selectProgram({programs.selection.shownBank(), index + 1});
+    // In Edit mode the footswitch's attachment has already switched the effect.
+}
+
+void MainPanel::writeKeyClicked()
+{
+    if (!writePending)
+    {
+        writePending = true;
+        writeDestination = 0;
+        configureForMode();
+        return;
+    }
+    if (writeDestination == 0)
+        return; // no destination picked yet
+
+    processor.writeProgram({userBank, writeDestination});
+    writePending = false;
+    writeConfirmTicks = writeConfirmationTicks;
+    configureForMode();
+}
+
+void MainPanel::setMode(ProgramMode mode)
+{
+    auto& programs = processor.getProgramState();
+    programs.mode = mode;
+    if (mode == ProgramMode::Program)
+        programs.selection.showBank(programs.selection.selected().bank); // whatever the switch says (p. 7)
+    configureForMode();
+}
+
+void MainPanel::configureForMode()
+{
+    const bool editing = processor.getProgramState().mode == ProgramMode::ManualEdit;
+    const bool switchesEffects = editing && !writePending;
+
+    for (std::size_t index = 0; index < footSwitchAttachments.size(); ++index)
+    {
+        auto& button = footSwitches[index];
+        if (switchesEffects && footSwitchAttachments[index] == nullptr)
+        {
+            button.setClickingTogglesState(true);
+            footSwitchAttachments[index] =
+                std::make_unique<ButtonAttachment>(parameters, ParameterIds::effectEnabled[index], button);
+        }
+        else if (!switchesEffects)
+        {
+            footSwitchAttachments[index].reset();
+            button.setClickingTogglesState(false);
+            button.setToggleState(false, juce::dontSendNotification);
+        }
+    }
+
+    if (editing)
+        bindRow(slide.getPosition());
+    else
+    {
+        // Knobs A–E edit nothing in Program mode (EV-124).
+        rebinding = true;
+        for (std::size_t index = 0; index < parameterKnobs.size(); ++index)
+        {
+            knobAttachments[index].reset();
+            parameterKnobs[index].setEnabled(false);
+        }
+        rebinding = false;
+        knobShown = -1;
+    }
+    updateDisplay(true);
+}
+
 void MainPanel::bindRow(int row)
 {
     selectedRowStore.store(row);
@@ -180,6 +301,7 @@ void MainPanel::bindRow(int row)
     }
     rebinding = false;
 
+    knobShown = -1;
     display.showStandBy(); // "Edit stand-by" (SRC-001 p. 5)
 }
 
@@ -196,22 +318,86 @@ void MainPanel::showKnobValue(int index)
     auto* parameter = parameters.getParameter(cell.parameterId);
     const int value = static_cast<int>(std::lround(parameter->convertFrom0to1(parameter->getValue())));
     display.showValue(dynamic_cast<juce::AudioParameterChoice*>(parameter) != nullptr ? value + 1 : value);
+    knobShown = index;
+}
+
+void MainPanel::updateDisplay(bool blinkOn)
+{
+    const auto& programs = processor.getProgramState();
+    if (writePending)
+    {
+        // Flashing "1": the program is about to be stored in bank 1 (SRC-001 p. 8).
+        if (blinkOn)
+            display.showValue(userBank);
+        else
+            display.showBlank();
+        display.setDot(false);
+        return;
+    }
+
+    if (programs.mode == ProgramMode::Program)
+    {
+        display.showValue(programs.selection.shownBank());
+        display.setDot(!programs.selection.isBankPending());
+        return;
+    }
+
+    // Edit mode: the value shown (set as the knob turns) or stand-by, and the dot (SRC-001 p. 9).
+    const auto edited = processor.getEditedProgram();
+    const auto& stored = processor.getStoredProgram();
+    if (knobShown < 0)
+    {
+        display.showStandBy();
+        display.setDot(sameEffectSwitches(edited, stored));
+        return;
+    }
+    const auto& cell =
+        rows[static_cast<std::size_t>(slide.getPosition() - 1)].cells[static_cast<std::size_t>(knobShown)];
+    const auto control = cell.parameterId != nullptr ? controlFor(cell.parameterId) : std::nullopt;
+    display.setDot(control.has_value() && sameControl(edited, stored, *control));
 }
 
 void MainPanel::updateIndicators()
 {
-    for (std::size_t index = 0; index < effectLeds.size(); ++index)
-        effectLeds[index].setLit(parameters.getRawParameterValue(ParameterIds::effectEnabled[index])->load() >= 0.5f);
-
-    // The mode LEDs: Manual/Edit lit (Milestone 1 has no Program mode); both blink in bypass
-    // (SRC-001 p. 4).
-    const bool bypassed = parameters.getRawParameterValue(ParameterIds::globalBypass)->load() >= 0.5f;
+    const auto& programs = processor.getProgramState();
+    const bool editing = programs.mode == ProgramMode::ManualEdit;
     blinkTicks = (blinkTicks + 1) % (2 * blinkHalfPeriodTicks);
     const bool blinkOn = blinkTicks < blinkHalfPeriodTicks;
-    editModeLed.setLit(bypassed ? blinkOn : true);
-    programModeLed.setLit(bypassed && blinkOn);
 
-    if (takePeak && takePeak() >= peakThreshold)
+    // EFCT/PROG LEDs: the destination while writing; the selected program in Program mode (unlit
+    // while another bank is pending, EV-124); the effects' on/off states in Edit mode.
+    const auto selected = programs.selection.selected();
+    for (std::size_t index = 0; index < effectLeds.size(); ++index)
+    {
+        const int number = static_cast<int>(index) + 1;
+        if (writePending)
+            effectLeds[index].setLit(number == writeDestination);
+        else if (!editing)
+            effectLeds[index].setLit(!programs.selection.isBankPending() && number == selected.program);
+        else
+            effectLeds[index].setLit(parameters.getRawParameterValue(ParameterIds::effectEnabled[index])->load() >=
+                                     0.5f);
+    }
+
+    // The mode LEDs: the mode's own, blinking in bypass (SRC-001 p. 4); both for about a second
+    // after a write (p. 8).
+    const bool bypassed = parameters.getRawParameterValue(ParameterIds::globalBypass)->load() >= 0.5f;
+    if (writeConfirmTicks > 0)
+    {
+        --writeConfirmTicks;
+        programModeLed.setLit(true);
+        editModeLed.setLit(true);
+    }
+    else
+    {
+        const bool modeLedOn = !bypassed || blinkOn;
+        programModeLed.setLit(!editing && modeLedOn);
+        editModeLed.setLit(editing && modeLedOn);
+    }
+
+    updateDisplay(blinkOn);
+
+    if (processor.takeInputPeak() >= peakThreshold)
         peakHoldTicks = peakHoldTicksMax;
     else if (peakHoldTicks > 0)
         --peakHoldTicks;

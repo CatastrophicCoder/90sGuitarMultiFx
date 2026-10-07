@@ -20,11 +20,7 @@ int heightFor(int width)
 
 PluginEditor::PluginEditor(PluginProcessor& pluginProcessor)
     : AudioProcessorEditor(pluginProcessor)
-    , mainPanel(pluginProcessor.getParameterState(), pluginProcessor.selectedRow,
-                [&pluginProcessor]
-                {
-                    return pluginProcessor.takeInputPeak();
-                })
+    , mainPanel(pluginProcessor)
 {
     addAndMakeVisible(mainPanel);
     setResizable(true, true);

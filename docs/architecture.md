@@ -151,8 +151,10 @@ native to JUCE.
 `ui::MainPanel` is the replica panel (`panel-specification.md`): drawn in code in one design space
 measured from the reference photo and scaled as a whole. `PanelLayout.h` holds the grid table and
 every coordinate; knobs A–E bind to the selected row's parameters through attachments that are
-rebuilt when the slide switch moves. Program mode, banks and WRITE are drawn and inactive (the
-processor side exists since Milestone 2 step 4; the panel follows in step 5).
+rebuilt when the slide switch moves in Edit mode. In Program mode the slide switch shows banks and
+footswitches 1–5 select programs; WRITE runs on the panel and stores through
+`PluginProcessor::writeProgram()`. The panel takes the `PluginProcessor` and works on its
+`ProgramState` (message thread).
 
 ## Build and dependencies
 

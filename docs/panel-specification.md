@@ -69,13 +69,13 @@ Matrix cell text, as printed (SRC-001 p. 2; SRC-003):
 |---------|----------|--------|-----------|
 | INPUT, OUTPUT knobs | Analog level pots | `inputTrim`, `outputLevel` | 1 |
 | PEAK LED | Lights on input peaks; set INPUT so it lights occasionally | Lights at −3 dBFS after the input trim, held 100 ms (threshold a placeholder, EV-118) | 1 |
-| Slide switch | Program mode: selects bank 1–6. Edit mode: selects the row knobs A–E edit | Edit-mode row selection in M1; bank selection in M2 | 1 / 2 |
-| Knobs A–E | Edit the selected row's parameters | Same. Difference: the hardware pots are absolute and shared across rows; the plugin's knobs show the selected row's current values (no jump) | 1 |
-| Display | Bank in Program mode; value of the knob being turned in Edit mode; "--" on edit stand-by; dot = value equals the stored program | Value and stand-by in M1; bank and dot in M2 | 1 / 2 |
-| Footswitches 1–5 | Program mode: select program. Edit mode: toggle effects 1–5 | Toggle effects in M1; program select in M2 | 1 / 2 |
-| Footswitch 6, mode LEDs | Toggles Program / Manual-Edit mode | M2 (M1 is always in Edit mode) | 2 |
-| WRITE | Stores to bank 1 | M2 | 2 |
-| BYPASS | Unprocessed sound; mode LEDs blink | `globalBypass`; LEDs blink | 1 |
+| Slide switch | Program mode: shows bank 1–6, entered when a program is picked. Edit mode: selects the row knobs A–E edit | Same (EV-025) | 1 / 2 |
+| Knobs A–E | Edit the selected row's parameters | Same in Edit mode; inactive in Program mode (EV-124). Difference: the hardware pots are absolute and shared across rows; the plugin's knobs show the selected row's current values (no jump) | 1 / 2 |
+| Display | Bank in Program mode; value of the knob being turned in Edit mode; "--" on edit stand-by; the dot (EV-028); flashing "1" during WRITE | Same. Back in Program mode it shows the playing bank wherever the switch is (EV-025) | 1 / 2 |
+| Footswitches 1–5 | Program mode: select program. Edit mode: toggle effects 1–5. During WRITE: pick the bank 1 slot | Same; their LEDs show the selected program (unlit while a bank is pending, EV-124), the effects, or the WRITE destination | 1 / 2 |
+| Footswitch 6, mode LEDs | Toggles Program / Manual-Edit mode; cancels WRITE | Same; a new instance starts in Program mode (EV-029), a session reopens in its saved mode (EV-121) | 2 |
+| WRITE | Display flashes "1"; a footswitch picks the slot; WRITE again stores it; both mode LEDs light about a second | Same (EV-027); WRITE before a slot is picked does nothing; the written slot becomes the selected program (EV-123) | 2 |
+| BYPASS | Unprocessed sound; mode LEDs blink | `globalBypass`; the lit mode LED blinks | 1 |
 
 ## Typography
 
@@ -87,9 +87,11 @@ The panel uses a condensed sans-serif for labels and a 7-segment LED display (ow
 - The 2-digit display: **drawn in code** as seven-segment shapes with a decimal point, lit and unlit
   segments, so no display font is needed.
 
-## Implementation (Milestone 1)
+## Implementation (Milestones 1–2)
 
 `src/ui/MainPanel` paints the fixed artwork and positions the controls in design units;
 `PanelLookAndFeel` (colours, lettering, knobs), `PanelControls` (knobs, LEDs, footswitches, keys,
-slide switch) and `SevenSegmentDisplay` draw everything in code. Render it to PNG files with
+slide switch) and `SevenSegmentDisplay` draw everything in code. The modes and WRITE are in
+`MainPanel` too; it works on the processor's `ProgramState` and calls `selectProgram()` and
+`writeProgram()`. Render it to PNG files (Edit mode at two sizes, and Program mode) with
 `FIVEA_SNAPSHOT_DIR=<dir> build/tests/fivea_plugin_tests "[.snapshot]"`.

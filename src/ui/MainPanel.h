@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/Program.h"
+#include "core/ProgramMode.h"
 #include "ui/PanelControls.h"
 #include "ui/PanelLookAndFeel.h"
 #include "ui/SevenSegmentDisplay.h"
@@ -12,6 +14,11 @@
 #include <functional>
 #include <memory>
 
+namespace fivea
+{
+class PluginProcessor;
+}
+
 namespace fivea::ui
 {
 
@@ -21,15 +28,24 @@ namespace fivea::ui
 // Everything is laid out in the design space of PanelLayout.h and scaled to the window as one
 // canvas, so proportions hold at any size.
 //
-// Manual/Edit mode (SRC-001 pp. 5–7): the slide switch picks the grid row knobs A–E edit; the
-// display shows the value being changed, "--" on stand-by; footswitches 1–5 switch the effects,
-// with their LEDs; BYPASS makes the mode LEDs blink. Program mode, banks and WRITE are Milestone 2:
-// the controls are drawn, and inactive.
+// Footswitch 6 toggles the two modes (SRC-001 pp. 4–9; docs/panel-specification.md):
+//
+//   Program mode      the slide switch shows a bank (entered when a footswitch picks one of its
+//                     programs); footswitches 1–5 select programs and light for the selected one;
+//                     the display shows the bank, with the dot when no bank is pending; knobs A–E
+//                     do nothing.
+//   Manual/Edit mode  the slide switch picks the grid row knobs A–E edit; the display shows the
+//                     value being changed, "--" on stand-by, with the dot when the value (or, on
+//                     stand-by, the effects' on/off states) equals the stored program's;
+//                     footswitches 1–5 switch the effects, with their LEDs.
+//
+// WRITE, in either mode: the display flashes "1"; a footswitch picks the bank 1 slot; WRITE again
+// stores the program and both mode LEDs light for about a second; footswitch 6 cancels. BYPASS
+// makes the lit mode LED blink.
 class MainPanel final : public juce::Component, private juce::Timer
 {
 public:
-    MainPanel(juce::AudioProcessorValueTreeState& state, std::atomic<int>& selectedRow,
-              std::function<float()> takeInputPeak);
+    explicit MainPanel(PluginProcessor& processor);
     ~MainPanel() override;
 
     void resized() override;
@@ -51,7 +67,14 @@ public:
     }
     [[nodiscard]] const Led& getPeakLed() const noexcept { return peakLed; }
     [[nodiscard]] const Led& getEditModeLed() const noexcept { return editModeLed; }
+    [[nodiscard]] const Led& getProgramModeLed() const noexcept { return programModeLed; }
+    [[nodiscard]] bool isWritePending() const noexcept { return writePending; }
+    void pressFootSwitch(int index); // as a click does
+    void pressWriteKey();
     void updateIndicators();
+
+    // Program Write's confirmation: both mode LEDs light for about a second (SRC-001 p. 8).
+    static constexpr int writeConfirmationTicks = 30;
 
     // The PEAK LED lights at and above this input peak (−3 dBFS). A placeholder: the original's
     // threshold is not documented, only that it should light "occasionally, but not constantly".
@@ -74,10 +97,16 @@ private:
     void layOutControls();
     void bindRow(int row);
     void showKnobValue(int index);
+    void slideMoved(int position);
+    void footSwitchClicked(int index);
+    void writeKeyClicked();
+    void setMode(ProgramMode mode);
+    void configureForMode(); // the footswitches' and knobs' roles for the mode and the write state
+    void updateDisplay(bool blinkOn);
 
+    PluginProcessor& processor;
     juce::AudioProcessorValueTreeState& parameters;
     std::atomic<int>& selectedRowStore;
-    std::function<float()> takePeak;
 
     PanelLookAndFeel lookAndFeel;
     Canvas canvas{*this};
@@ -109,6 +138,11 @@ private:
     bool rebinding = false;
     int peakHoldTicks = 0;
     int blinkTicks = 0;
+
+    int knobShown = -1; // the knob whose value the display shows in Edit mode; −1 on stand-by
+    bool writePending = false;
+    int writeDestination = 0; // the bank 1 program picked during a write; 0 before one is picked
+    int writeConfirmTicks = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainPanel)
 };

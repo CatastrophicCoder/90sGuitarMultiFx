@@ -49,18 +49,32 @@ juce::String SevenSegmentDisplay::textFor(int value)
 
 void SevenSegmentDisplay::showValue(int value)
 {
-    text = textFor(value);
-    repaint();
+    showText(textFor(value));
 }
 
 void SevenSegmentDisplay::showStandBy()
 {
-    text = "--";
+    showText("--");
+}
+
+void SevenSegmentDisplay::showBlank()
+{
+    showText("  ");
+}
+
+// The panel refreshes the display on every timer tick; repaint only on a change.
+void SevenSegmentDisplay::showText(const juce::String& newText)
+{
+    if (newText == text)
+        return;
+    text = newText;
     repaint();
 }
 
 void SevenSegmentDisplay::setDot(bool lit)
 {
+    if (lit == dot)
+        return;
     dot = lit;
     repaint();
 }

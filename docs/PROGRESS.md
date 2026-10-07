@@ -274,3 +274,16 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   deliberate breakages; one survived (the switch slipping to the next block) until a test of the
   gap's length was added.
 
+### 2026-10-07: Milestone 2 step 5, the panel's Program mode and WRITE
+
+- Footswitch 6 toggles the modes, with the mode LEDs. Program mode: the slide switch shows a bank,
+  footswitches 1–5 pick a program in it, their LEDs show the playing program, the display shows
+  the bank with the dot unless one is pending, knobs A–E are inactive. Edit mode as in
+  Milestone 1, plus the dot. WRITE: flashing "1", footswitch picks the slot, WRITE stores (both
+  mode LEDs for a second), footswitch 6 cancels; from either mode.
+- The display repaints only on a change, now that the panel refreshes it on every tick.
+- 11 new panel tests; Milestone 1's panel tests now switch to Edit mode first. Thirteen deliberate
+  breakages; one survived (the playing bank not shown again after leaving Program mode with a
+  bank pending) until that case was added.
+- Evidence: EV-124 for what the manual leaves open on the panel.
+
