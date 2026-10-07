@@ -502,6 +502,46 @@ TEST_CASE("The mode survives closing and reopening the editor")
           (panel::rows[static_cast<std::size_t>(p.getSelectedRow() - 1)].cells[0].parameterId != nullptr));
 }
 
+TEST_CASE("A program written on the panel survives saving and reloading the session")
+{
+    juce::ScopedJuceInitialiser_GUI juce;
+    juce::MemoryBlock session;
+    {
+        PluginProcessor processor;
+        auto editor = openEditor(processor);
+        auto& p = dynamic_cast<PluginEditor&>(*editor).getPanel();
+        p.selectRow(4);
+        p.pressFootSwitch(0);              // 4-1 DEV Wide Chorus
+        p.pressFootSwitch(5);              // Edit, on row 4: CHORUS/FL
+        turn(p.getParameterKnob(1), 11.0); // SPEED 11
+        p.pressWriteKey();
+        p.pressFootSwitch(3); // to 1-4
+        p.pressWriteKey();
+        processor.getStateInformation(session);
+    }
+
+    PluginProcessor restored; // as a host reopening the project
+    restored.setStateInformation(session.getData(), static_cast<int>(session.getSize()));
+    const auto& programs = restored.getProgramState();
+    CHECK(programs.bank.at({1, 4}).name.view() == "DEV Wide Chorus");
+    CHECK(programs.bank.at({1, 4}).modulation.speed == 11);
+    CHECK(programs.selection.selected() == fivea::ProgramLocation{1, 4});
+    CHECK(programs.mode == fivea::ProgramMode::ManualEdit);
+
+    auto editor = openEditor(restored);
+    auto& p = dynamic_cast<PluginEditor&>(*editor).getPanel();
+    p.updateIndicators();
+    CHECK(p.getEditModeLed().isLit());
+    CHECK(p.getDisplay().getText() == "--");
+    CHECK(p.getDisplay().isDotLit()); // the settings are the stored program's
+    CHECK(restored.getProgramName(3) == "1-4 DEV Wide Chorus");
+
+    p.pressFootSwitch(5); // Program mode: bank 1, 1-4 playing
+    p.updateIndicators();
+    CHECK(p.getDisplay().getText() == " 1");
+    CHECK(p.getEffectLed(3).isLit());
+}
+
 // Not a check: renders the panel to PNG files for looking at.
 //   FIVEA_SNAPSHOT_DIR=<dir> build/tests/fivea_plugin_tests "[.snapshot]"
 TEST_CASE("Render the panel", "[.snapshot]")

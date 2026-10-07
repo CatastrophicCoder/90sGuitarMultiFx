@@ -1,8 +1,8 @@
 # Architecture
 
-State at the end of **Milestone 1**: the plugin (VST3, and AU on macOS) runs the original unit's
-full effect chain, with every documented control as a host parameter and a replica of its front
-panel in Manual/Edit mode. Every algorithm is a placeholder: the controls and documented values
+State at the end of **Milestone 2**: the plugin (VST3, and AU on macOS) runs the original unit's
+full effect chain, with every documented control as a host parameter, its 30-slot program memory
+and a replica of its front panel in both modes. Every algorithm is a placeholder: the controls and documented values
 match the original; the sound does not claim to.
 
 ## Layers
@@ -169,7 +169,7 @@ footswitches 1–5 select programs; WRITE runs on the panel and stores through
   shared with its other plugins), plugin code `Nmf1`, product "Five-A MultiFX Processor". Changing
   the codes or the bundle ID after release breaks saved sessions.
 
-## Where Milestone 1 differs from the plan
+## Where the implementation differs from the plan
 
 | Plan | Implementation | Why |
 |------|----------------|-----|
@@ -185,4 +185,9 @@ footswitches 1–5 select programs; WRITE runs on the panel and stores through
 | §13: `FixedPointProfile` | Not created | Disabled until evidence supports a configuration |
 | §17.2: no copied trade dress | A close replica of the panel, without the original's names, logo or artwork | Owner's decision, plan §17.2 amended |
 | §5 file layout: added | `AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h`, `ModelProfile.h`, `StepMapping`, `Program`, `ProgramBank`, `ProgramMode.h`, `FactoryPrograms`, `BypassCrossfade.h`, `DenormalGuard.h`, `Biquad`, `Oversampler`, `Waveshapers.h`, `Reverb`, `NoiseReduction`; the panel's `PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `docs/source-register.md`, `panel-specification.md` | Pieces the plan's sections or the evidence rules need |
-| §5 file layout: not yet | `ProgramDisplay` (Milestone 2), `tools/*` and `docs/measurement-protocol.md` (Milestone 4), `FixedPoint` | — |
+| §5 file layout: not yet | `tools/*` and `docs/measurement-protocol.md` (Milestone 4), `FixedPoint` | — |
+| §5 file layout: `ProgramDisplay` | Not a separate file: the panel's display shows banks (`ui/MainPanel`, `SevenSegmentDisplay`) | The replica panel is the program display |
+| §3.2: banks in an optional "Hardware" browser, plus host presets | The replica panel's Program mode is the browser; the host sees the 30 slots as its program list | Owner's decision for a close replica (2026-10-05) |
+| §3.2: ship only development presets until values are verified | 2-1 is METAL 1, from the owner's manual; the other 24 are development presets | Owner's decision (2026-10-07); METAL 1 is the one documented preset |
+| §21 M2: program change crossfading | An output dip (fade out, switch and reset, fade in) | Owner's decision (2026-10-07) |
+| §16: serialize routing mode and authenticity mode | Not yet: neither exists | Plan §3.3, §7.2: later milestones |

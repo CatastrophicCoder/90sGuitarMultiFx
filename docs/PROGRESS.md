@@ -10,7 +10,7 @@ versus assumed is in `docs/evidence-register.md`.
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
 | 1 Complete functional chain | Done (2026-10-07) | All nine steps done; acceptance below. CI green on all platforms (`d29e268`). Outstanding: listening in a DAW and comparing the panel with the original. |
-| 2 Programs and workflow | In progress | Plan and decisions agreed 2026-10-07. |
+| 2 Programs and workflow | Done (2026-10-07), pending CI | Acceptance below. Outstanding: listening to program changes in a DAW. |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
 | 5 Measurement-driven calibration | Not started | Needs access to a physical unit. |
@@ -33,12 +33,27 @@ versus assumed is in `docs/evidence-register.md`.
 Outstanding manual checks (the owner's): listening in a DAW, and comparing the panel with the
 original.
 
-## Carried over to Milestone 2 and later
+## Milestone 2 acceptance (plan §21)
 
-- Program mode: 6 banks × 5 programs, bank 1 user-writable, WRITE, footswitch 6 (Program /
-  Manual-Edit), the display's bank number and dot, state schema with bank/program/name (plan §21 M2).
-- Development presets for banks 2–6, named as such (plan §3.2); only 2-1 "METAL 1" is documented.
-- The volume pedal input (EV-016), left out of Milestone 1 by decision.
+| Criterion | Evidence | Result |
+|-----------|----------|--------|
+| Six banks, five programs per bank; 30 program slots represented | `ProgramBank` (30 slots); the host's program list (30 named programs); the panel's Program mode (`ProgramBankTests`, `ProgramChangeTests`, `PanelTests`) | Met |
+| User bank behaviour | Only bank 1 is writable, by WRITE on the panel or `writeProgram()`; banks 2–6 refuse it; bank 1 starts as copies of five presets | Met |
+| User programs persist | State schema 2 saves bank 1, the selected program and the mode; a program written on the panel survives saving and reloading the session (`PanelTests`, `ProgramStateTests`) | Met |
+| Host preset support | `getNumPrograms()` 30, names "2-1 METAL 1", `setCurrentProgram()` selects, bank 1 renamable; the session state for the host's own presets | Met |
+| State migration framework | `currentSchemaVersion` 2 with a migration step; schema 1 states load with the factory programs; unknown, missing, unreadable and out-of-range values handled per plan §16 | Met |
+| Program change crossfading; no severe clicks | The output dip (owner's decision): click ratio 0.04–8.6 against a bound of 20, into and out of every factory program; no allocation; skipped under bypass | Met |
+| Factory slots clearly identified as development presets | 24 slots named "DEV …"; 2-1 is METAL 1 from the owner's manual, the one documented preset (`FactoryProgramsTests`) | Met |
+| Automated tests pass | 204 tests, macOS Debug, Release and the hardened build; ASan/UBSan engine tests clean; auval, pluginval strictness 10 (VST3, AU) | Met on macOS; CI to confirm after the sign-off push |
+
+Outstanding manual checks (the owner's): listening to program changes in a DAW, and comparing the
+Program-mode panel with the original.
+
+## Carried over to Milestone 3 and later
+
+- The volume pedal input (EV-016), left out of Milestones 1–2 by decision.
+- The original's 24 other factory presets and METAL 1's Utility values, if the Effect Parameter
+  List is found (EV-010, EV-120).
 - L/Mono routing mode (plan §3.3) and authenticity mode (plan §7.2).
 - Hardware-rate mode (Milestone 3); measurement tooling (Milestone 4); golden renders (4–5).
 - CI: static analysis; the GitHub actions still target the deprecated Node.js 20.
@@ -286,4 +301,10 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   breakages; one survived (the playing bank not shown again after leaving Program mode with a
   bank pending) until that case was added.
 - Evidence: EV-124 for what the manual leaves open on the panel.
+
+### 2026-10-07: Milestone 2 sign-off
+
+- End-to-end test: a program written on the panel survives saving and reloading the session
+  (bank 1, selection, mode, and the panel showing them).
+- Acceptance table above. Milestone 2 done, pending CI.
 

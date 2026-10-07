@@ -24,9 +24,10 @@ Read these at the start of every session:
 - `docs/evidence-register.md`: what is known about the original unit versus assumed.
 - `docs/architecture.md`: how the code is put together, and where it differs from the plan's layout.
 
-**Current state:** Milestone 1 is done (see `docs/PROGRESS.md` for its acceptance and what carries
-over): the full chain, every documented control, and the replica panel in Manual/Edit mode.
-Milestone 2, programs and workflow, is in progress; its decisions are in `docs/PROGRESS.md`.
+**Current state:** Milestones 1 and 2 are done (see `docs/PROGRESS.md` for their acceptance and
+what carries over): the full chain, every documented control, the replica panel in both modes, 30
+program slots (METAL 1 and development presets), Program Write, and click-free program changes.
+Next is Milestone 3, hardware-rate mode.
 
 ## How to work in this repo
 
@@ -127,6 +128,9 @@ wrong DSP, which the validators never look at.
 - Macs are arm64, macOS 11+. No signing or notarisation yet.
 - You cannot listen to audio. Numerical tests are the only way to check DSP changes; I do
   listening checks myself.
+
+Tests through the `AudioProcessor` that need neutral settings reset every parameter to its default
+first: a new instance plays program 1-1.
 
 ## Architecture in brief
 
