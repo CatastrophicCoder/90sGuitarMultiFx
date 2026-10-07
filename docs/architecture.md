@@ -108,24 +108,35 @@ IDs are in `src/core/ParameterIds.h`, ranges in `ParameterLayout.cpp`, listed in
 Every `juce::ParameterID` carries version hint 1; parameters added after a release take that
 release's number.
 
-State format (schema version 1):
+State format (schema version 2):
 
 ```xml
-<FiveAState schemaVersion="1" model="functional-placeholder">
-  <Parameters>
+<FiveAState schemaVersion="2" model="functional-placeholder">
+  <Parameters>                                  the edit buffer: every host parameter
     <Parameter id="inputTrim" value="0"/>
     ...
   </Parameters>
+  <Programs bank="2" program="1" mode="program">  selected program; mode "program" or "manualEdit"
+    <Program slot="1-1" name="METAL 1">           bank 1 only; banks 2–6 always come from the code
+      <Value id="driveEnabled" value="1"/>        on/off states, then the 24 controls,
+      <Value id="driveMode" value="1"/>           in the documented steps (MODE 1–7, not an index)
+      ...
+    </Program>
+    ...
+  </Programs>
 </FiveAState>
 ```
 
 Stored inside JUCE's binary XML wrapper, plain values in layout order, so saving the same settings
 always gives the same bytes. Loading refuses a foreign or unversioned document; migrates older
 schemas (none yet); reads newer ones for the parameters it knows; parses each value strictly,
-clamps it, defaults it if missing; ignores anything unknown.
+clamps it, defaults it if missing; ignores anything unknown. The same rules apply to each
+program value; a missing or unreadable program slot keeps its factory copy, and a slot outside
+bank 1 is ignored. Schema 1 (Milestones 0–1) has no `<Programs>` and loads as the factory programs
+with 1-1 selected in Program mode; `PluginProcessor` owns the `ProgramState` (message thread).
 
 The plan's §16 shows the schema as JSON "conceptually"; XML carries the same information and is
-native to JUCE. Bank, program and preset name arrive in Milestone 2.
+native to JUCE.
 
 ## The editor
 

@@ -1,5 +1,7 @@
 #include "core/Program.h"
 
+#include "core/ParameterIds.h"
+
 namespace fivea
 {
 
@@ -98,6 +100,63 @@ int& controlValue(Program& program, ProgramControl control) noexcept
 int controlValue(const Program& program, ProgramControl control) noexcept
 {
     return valueOf(program, control);
+}
+
+const char* parameterIdFor(ProgramControl control) noexcept
+{
+    namespace Ids = ParameterIds;
+    switch (control)
+    {
+    case ProgramControl::CompressorSens:
+        return Ids::compressorSens;
+    case ProgramControl::CompressorAttack:
+        return Ids::compressorAttack;
+    case ProgramControl::CompressorLevel:
+        return Ids::compressorLevel;
+    case ProgramControl::DriveMode:
+        return Ids::driveMode;
+    case ProgramControl::DriveDrive:
+        return Ids::driveDrive;
+    case ProgramControl::DriveTone:
+        return Ids::driveTone;
+    case ProgramControl::DriveLevel:
+        return Ids::driveLevel;
+    case ProgramControl::EqualiserBass:
+        return Ids::equaliserBass;
+    case ProgramControl::EqualiserMidFrequency:
+        return Ids::equaliserMidFrequency;
+    case ProgramControl::EqualiserMid:
+        return Ids::equaliserMid;
+    case ProgramControl::EqualiserTreble:
+        return Ids::equaliserTreble;
+    case ProgramControl::EqualiserTrim:
+        return Ids::equaliserTrim;
+    case ProgramControl::ModulationMode:
+        return Ids::modulationMode;
+    case ProgramControl::ModulationSpeed:
+        return Ids::modulationSpeed;
+    case ProgramControl::ModulationDepth:
+        return Ids::modulationDepth;
+    case ProgramControl::ModulationFeedback:
+        return Ids::modulationFeedback;
+    case ProgramControl::ModulationMix:
+        return Ids::modulationMix;
+    case ProgramControl::TimeEffectMode:
+        return Ids::timeEffectMode;
+    case ProgramControl::TimeEffectTime:
+        return Ids::timeEffectTime;
+    case ProgramControl::TimeEffectFine:
+        return Ids::timeEffectFine;
+    case ProgramControl::TimeEffectFeedback:
+        return Ids::timeEffectFeedback;
+    case ProgramControl::TimeEffectMix:
+        return Ids::timeEffectMix;
+    case ProgramControl::NoiseReductionLevel:
+        return Ids::noiseReductionLevel;
+    case ProgramControl::Master:
+        return Ids::master;
+    }
+    return Ids::master; // unreachable: every enumerator is handled above
 }
 
 documented::StepRange controlRange(ProgramControl control) noexcept

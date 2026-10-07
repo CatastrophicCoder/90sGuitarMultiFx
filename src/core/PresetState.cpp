@@ -1,5 +1,8 @@
 #include "core/PresetState.h"
 
+#include "core/ParameterIds.h"
+
+#include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <cstdlib>
@@ -17,6 +20,16 @@ constexpr const char* schemaVersionAttribute = "schemaVersion";
 constexpr const char* modelAttribute = "model";
 constexpr const char* idAttribute = "id";
 constexpr const char* valueAttribute = "value";
+constexpr const char* programsTag = "Programs";
+constexpr const char* programTag = "Program";
+constexpr const char* programValueTag = "Value";
+constexpr const char* bankAttribute = "bank";
+constexpr const char* programAttribute = "program";
+constexpr const char* modeAttribute = "mode";
+constexpr const char* slotAttribute = "slot";
+constexpr const char* nameAttribute = "name";
+constexpr const char* programModeName = "program";
+constexpr const char* manualEditModeName = "manualEdit";
 
 // juce::String::getDoubleValue() returns 0 for garbage, which would silently become a valid
 // setting; a state value must parse completely or be treated as missing.
@@ -48,25 +61,130 @@ std::optional<int> parseSchemaVersion(const juce::String& text)
     return version;
 }
 
-const juce::XmlElement* findParameter(const juce::XmlElement* parameters, const juce::String& id)
+// A whole number, optionally negative, written as plain digits.
+std::optional<int> parseInteger(const juce::String& text)
 {
-    if (parameters == nullptr)
+    const auto digits = text.trim().toStdString();
+    int value = 0;
+    const auto [end, error] = std::from_chars(digits.data(), digits.data() + digits.size(), value);
+
+    if (digits.empty() || error != std::errc{} || end != digits.data() + digits.size())
+        return std::nullopt;
+
+    return value;
+}
+
+// "1-3" → bank 1, program 3.
+std::optional<ProgramLocation> parseSlot(const juce::String& text)
+{
+    const auto bank = parseInteger(text.upToFirstOccurrenceOf("-", false, false));
+    const auto program = parseInteger(text.fromFirstOccurrenceOf("-", false, false));
+    if (!bank.has_value() || !program.has_value()) // without a dash, the program part is empty
+        return std::nullopt;
+
+    const ProgramLocation location{*bank, *program};
+    return location.isValid() ? std::optional{location} : std::nullopt;
+}
+
+juce::String slotText(ProgramLocation location)
+{
+    return juce::String(location.bank) + "-" + juce::String(location.program);
+}
+
+const juce::XmlElement* findChild(const juce::XmlElement* parent, const char* tag, const juce::String& id)
+{
+    if (parent == nullptr)
         return nullptr;
 
-    for (const auto* child : parameters->getChildWithTagNameIterator(parameterTag))
+    for (const auto* child : parent->getChildWithTagNameIterator(tag))
         if (child->getStringAttribute(idAttribute) == id)
             return child;
 
     return nullptr;
 }
 
+const juce::XmlElement* findParameter(const juce::XmlElement* parameters, const juce::String& id)
+{
+    return findChild(parameters, parameterTag, id);
+}
+
 // Each schema change adds a step here that rewrites an older document into the next version's
-// shape. Version 1 is the first, so there is nothing to migrate yet.
+// shape.
+//   1 → 2: adds <Programs>. A document without it already reads as the factory programs with 1-1
+//          selected, so nothing needs rewriting.
 void migrateToCurrentSchema(juce::XmlElement& /*xml*/, int /*fromVersion*/) {}
+
+void writeProgram(juce::XmlElement& parent, ProgramLocation location, const Program& program)
+{
+    auto* element = parent.createNewChildElement(programTag);
+    element->setAttribute(slotAttribute, slotText(location));
+    element->setAttribute(nameAttribute, juce::String{std::string{program.name.view()}});
+
+    for (std::size_t block = 0; block < numEffectBlocks; ++block)
+    {
+        auto* value = element->createNewChildElement(programValueTag);
+        value->setAttribute(idAttribute, ParameterIds::effectEnabled[block]);
+        value->setAttribute(valueAttribute, program.effectEnabled[block] ? 1 : 0);
+    }
+    for (int index = 0; index < numProgramControls; ++index)
+    {
+        const auto control = static_cast<ProgramControl>(index);
+        auto* value = element->createNewChildElement(programValueTag);
+        value->setAttribute(idAttribute, parameterIdFor(control));
+        value->setAttribute(valueAttribute, controlValue(program, control));
+    }
+}
+
+// Starts from a default program, so a value that is missing or unreadable takes the control's
+// default, as a missing parameter does.
+Program readProgram(const juce::XmlElement& element)
+{
+    Program program;
+    program.name = ProgramName::from(element.getStringAttribute(nameAttribute).toStdString());
+
+    for (std::size_t block = 0; block < numEffectBlocks; ++block)
+        if (const auto* value = findChild(&element, programValueTag, ParameterIds::effectEnabled[block]))
+            if (const auto number = parseInteger(value->getStringAttribute(valueAttribute)))
+                program.effectEnabled[block] = *number != 0;
+
+    for (int index = 0; index < numProgramControls; ++index)
+    {
+        const auto control = static_cast<ProgramControl>(index);
+        if (const auto* value = findChild(&element, programValueTag, parameterIdFor(control)))
+            if (const auto number = parseInteger(value->getStringAttribute(valueAttribute)))
+            {
+                const auto range = controlRange(control);
+                controlValue(program, control) = std::clamp(*number, range.minimum, range.maximum);
+            }
+    }
+    return program;
+}
+
+ProgramState readProgramState(const juce::XmlElement* element)
+{
+    ProgramState programs;
+    if (element == nullptr)
+        return programs;
+
+    for (const auto* child : element->getChildWithTagNameIterator(programTag))
+    {
+        const auto location = parseSlot(child->getStringAttribute(slotAttribute));
+        if (location.has_value() && location->bank == userBank)
+            programs.bank.write(*location, readProgram(*child));
+    }
+
+    const auto bank = parseInteger(element->getStringAttribute(bankAttribute));
+    const auto program = parseInteger(element->getStringAttribute(programAttribute));
+    programs.selection.select(ProgramLocation{bank.value_or(userBank), program.value_or(1)}.clamped());
+
+    programs.mode = element->getStringAttribute(modeAttribute) == manualEditModeName ? ProgramMode::ManualEdit
+                                                                                     : ProgramMode::Program;
+    return programs;
+}
 
 } // namespace
 
-std::unique_ptr<juce::XmlElement> toXml(const juce::AudioProcessor& processor)
+std::unique_ptr<juce::XmlElement> toXml(const juce::AudioProcessor& processor, const ProgramState& programs)
 {
     auto xml = std::make_unique<juce::XmlElement>(rootTag);
     xml->setAttribute(schemaVersionAttribute, currentSchemaVersion);
@@ -85,10 +203,19 @@ std::unique_ptr<juce::XmlElement> toXml(const juce::AudioProcessor& processor)
         element->setAttribute(valueAttribute, static_cast<double>(ranged->convertFrom0to1(ranged->getValue())));
     }
 
+    auto* programList = xml->createNewChildElement(programsTag);
+    const auto selected = programs.selection.selected();
+    programList->setAttribute(bankAttribute, selected.bank);
+    programList->setAttribute(programAttribute, selected.program);
+    programList->setAttribute(modeAttribute,
+                              programs.mode == ProgramMode::ManualEdit ? manualEditModeName : programModeName);
+    for (int program = 1; program <= programsPerBank; ++program)
+        writeProgram(*programList, {userBank, program}, programs.bank.at({userBank, program}));
+
     return xml;
 }
 
-LoadResult fromXml(const juce::XmlElement& source, juce::AudioProcessor& processor)
+LoadResult fromXml(const juce::XmlElement& source, juce::AudioProcessor& processor, ProgramState& programs)
 {
     if (!source.hasTagName(rootTag))
         return {};
@@ -122,6 +249,8 @@ LoadResult fromXml(const juce::XmlElement& source, juce::AudioProcessor& process
 
         ranged->setValueNotifyingHost(normalised);
     }
+
+    programs = readProgramState(xml.getChildByName(programsTag));
 
     return {true, schemaVersion};
 }

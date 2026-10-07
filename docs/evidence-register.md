@@ -79,12 +79,14 @@ system; per plan §13 they are not turned into filters, noise or bit reduction.
 | EV-118 | PEAK LED threshold −3 dBFS after the input trim, held 100 ms | PLACEHOLDER (design choice) | Documented only as "adjust the input level so that the Peak Indicator occasionally, but not constantly, lights up" (SRC-001 p. 2, 4); it is driven by the CPU from the input gain stage (SRC-002 PDF p. 10, 11) | `ui/MainPanel`, peak from `PluginProcessor::takeInputPeak()`. | — | The original's threshold relative to its A/D's full scale: measure. |
 | EV-119 | Not program data: input trim, output level, global bypass and drive oversampling. A new instance selects program 1-1. Program names (at most 31 printable ASCII characters) exist for the host's program list; the original shows none | PLACEHOLDER (design choice) | INPUT and OUTPUT LEVEL are analog pots on the original (EV-013); BYPASS is a key (SRC-001 p. 2); the power-on program is not documented (EV-029) | `core/Program`, `core/ProgramBank`. | — | — |
 | EV-120 | Bank 1 starts as copies of 2-1, 3-1, 4-1, 5-1 and 6-1; METAL 1's controls the manual does not show (the switched-off compressor's and chorus/flanger's, Reverb/Delay TIME/FINE/F.BACK, NR LEVEL, MASTER) take the plugin's defaults | PLACEHOLDER (design choice) | The original copied five presets into bank 1 but the manual does not say which (SRC-001 p. 8); METAL 1 is documented only in part (SRC-001 p. 6) | `core/FactoryPrograms`. | — | The original's bank 1 contents and METAL 1's Utility values: in the Effect Parameter List, if one is found. |
+| EV-121 | A saved session stores the selected program and the panel's mode, and reopens in that mode; a new instance starts in Program mode | PLACEHOLDER (design choice) | The original always powers on in Program mode (EV-029); a DAW session is closer to a saved setup than to a power cycle | `core/PresetState` (schema 2). | — | — |
 
 ## Change log
 
 | Date | Change |
 |------|--------|
 | 2026-10-04 | Register created for Milestone 0. All CONFIRMED rows taken from the plan, pending primary citations. |
+| 2026-10-07 | M2 step 3: EV-121 (sessions save the mode) added. |
 | 2026-10-07 | M2 step 2: EV-010 updated (METAL 1 shipped in 2-1, development presets elsewhere); EV-120 (bank 1 sources, METAL 1's undocumented controls) added. |
 | 2026-10-07 | M2 step 1: EV-024–029 (program contents and workflow, SRC-001 pp. 4–9) and EV-119 (what is not program data) added; EV-009 updated. |
 | 2026-10-06 | M1 step 8: EV-118 (PEAK LED threshold) added. |

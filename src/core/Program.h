@@ -104,6 +104,10 @@ enum class ProgramControl
 
 inline constexpr int numProgramControls = static_cast<int>(ProgramControl::Master) + 1;
 
+// The host parameter that holds the control (core/ParameterIds.h); saved state names program
+// values by it.
+[[nodiscard]] const char* parameterIdFor(ProgramControl control) noexcept;
+
 // The control's documented range (SRC-001 pp. 7, 10–12).
 [[nodiscard]] documented::StepRange controlRange(ProgramControl control) noexcept;
 

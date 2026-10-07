@@ -241,3 +241,14 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   timestamp, so the build kept the broken objects. The source was right; the scripts now touch
   restored files, and the build was redone from scratch.
 
+### 2026-10-07: Milestone 2 step 3, state schema 2
+
+- State schema 2: `<Programs>` holds the selected program, the panel's mode and bank 1's five
+  programs (stable parameter IDs, documented step numbers). Factory slots are never saved.
+  Schema 1 states load as before, with the factory programs and 1-1. `PluginProcessor` owns a
+  `ProgramState`; nothing uses it yet but the state.
+- 9 tests in `ProgramStateTests`: round trip (and identical bytes), the saved format, migration
+  from schema 1, unknown/missing/unreadable/out-of-range program values, unreadable and factory
+  slots, a newer schema, a rejected document leaving programs alone, and every program control
+  matching its host parameter's range. Ten deliberate breakages each caught.
+

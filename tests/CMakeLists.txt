@@ -32,7 +32,8 @@ catch_discover_tests(fivea_engine_tests TEST_PREFIX "engine: " PROPERTIES TIMEOU
 add_executable(fivea_plugin_tests
     Common/WindowsErrorReporting.cpp
     Integration/PanelTests.cpp
-    Integration/PluginProcessorTests.cpp)
+    Integration/PluginProcessorTests.cpp
+    Integration/ProgramStateTests.cpp)
 
 target_include_directories(fivea_plugin_tests PRIVATE
     $<TARGET_PROPERTY:FiveAPlugin,INCLUDE_DIRECTORIES>)

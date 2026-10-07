@@ -2,6 +2,7 @@
 
 #include "core/FiveAProcessor.h"
 #include "core/ParameterSnapshot.h"
+#include "core/ProgramState.h"
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -52,6 +53,9 @@ public:
 
     [[nodiscard]] juce::AudioProcessorValueTreeState& getParameterState() noexcept { return parameterState; }
     [[nodiscard]] int getLastLoadedSchemaVersion() const noexcept { return lastLoadedSchemaVersion; }
+
+    // The program memory, selection and mode. Message thread only.
+    [[nodiscard]] ProgramState& getProgramState() noexcept { return programState; }
 
     // The parameters as the engine receives them; for tests and the editor.
     [[nodiscard]] ParameterSnapshot readParameterSnapshot() const noexcept;
@@ -115,6 +119,7 @@ private:
     int preparedBlockSize = 0;
     int preparedOversampling = 1;
     int lastLoadedSchemaVersion = 0;
+    ProgramState programState;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

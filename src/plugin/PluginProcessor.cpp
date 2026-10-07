@@ -173,7 +173,7 @@ juce::AudioProcessorEditor* PluginProcessor::createEditor()
 
 void PluginProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
-    if (const auto xml = state::toXml(*this))
+    if (const auto xml = state::toXml(*this, programState))
         copyXmlToBinary(*xml, destData);
 }
 
@@ -182,7 +182,7 @@ void PluginProcessor::setStateInformation(const void* data, int sizeInBytes)
     // Corrupt or foreign data leaves the current settings untouched.
     if (const auto xml = getXmlFromBinary(data, sizeInBytes))
     {
-        const auto result = state::fromXml(*xml, *this);
+        const auto result = state::fromXml(*xml, *this, programState);
         if (result.loaded)
             lastLoadedSchemaVersion = result.schemaVersion;
     }
