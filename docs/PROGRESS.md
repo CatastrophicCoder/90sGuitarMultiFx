@@ -9,8 +9,8 @@ versus assumed is in `docs/evidence-register.md`.
 | Milestone | Status | Notes |
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
-| 1 Complete functional chain | Done (2026-10-06), pending CI | All nine steps done; acceptance below. CI was green through step 5; Windows then failed on non-ASCII test names (fixed in step 9). Confirm the run after the step 9 push. |
-| 2 Programs and workflow | Not started | |
+| 1 Complete functional chain | Done (2026-10-07) | All nine steps done; acceptance below. CI green on all platforms (`d29e268`). Outstanding: listening in a DAW and comparing the panel with the original. |
+| 2 Programs and workflow | In progress | Plan and decisions agreed 2026-10-07. |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
 | 5 Measurement-driven calibration | Not started | Needs access to a physical unit. |
@@ -28,7 +28,7 @@ versus assumed is in `docs/evidence-register.md`.
 | Order matches the documented chain | The engine equals the documented order built by hand from the blocks, bit for bit, for all 32 combinations | Met |
 | All effect combinations work | Same test | Met |
 | No audio-thread allocation | Counting `operator new` around the full chain while switching everything; every block on its own | Met |
-| Automated tests pass | 144 tests, macOS Debug and Release locally; ASan/UBSan clean; pluginval strictness 10, auval. CI on `710a5e5`: macOS and Linux green (Debug, Release); Windows failed only the three non-ASCII-named tests | Met on macOS and Linux; Windows to confirm on the step 9 push |
+| Automated tests pass | 144 tests, macOS Debug and Release locally; ASan/UBSan clean; pluginval strictness 10, auval. CI on `710a5e5`: macOS and Linux green (Debug, Release); Windows failed only the three non-ASCII-named tests | Met: CI green on macOS, Windows and Linux, Debug and Release (`d29e268`) |
 
 Outstanding manual checks (the owner's): listening in a DAW, and comparing the panel with the
 original.
@@ -90,6 +90,18 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 - 2026-10-06 (Milestone 1 step 8): the 2-digit LED display is **drawn in code** (vector
   seven-segment shapes, no font); panel lettering uses **Barlow Condensed** (SIL Open Font
   License), embedded with its licence text.
+
+- 2026-10-07 (Milestone 2 plan):
+  - **Factory banks 2–6:** slot 2-1 is METAL 1 with the owner's manual's documented values
+    (SRC-001 p. 6; its NR LEVEL and MASTER are not documented, so PLACEHOLDER). The other 24 slots
+    are our own programs, named as development presets.
+  - **Bank 1 starts with copies of five presets**, as the original's factory did (SRC-001 p. 8).
+    Which five the original copied is not documented; ours are our choice.
+  - **User programs persist in the session** (the plugin state saved with the project); each
+    instance has its own bank 1. No shared file.
+  - **Program changes dip the output:** fade out, apply the new program and reset the effects,
+    fade in. Tails are cut. How the original sounds during a change is not documented
+    (PLACEHOLDER, design choice).
 
 ## Session log
 

@@ -25,8 +25,8 @@ Read these at the start of every session:
 - `docs/architecture.md`: how the code is put together, and where it differs from the plan's layout.
 
 **Current state:** Milestone 1 is done (see `docs/PROGRESS.md` for its acceptance and what carries
-over): the full chain, every documented control, and the replica panel in Manual/Edit mode. Next
-is Milestone 2, programs and workflow.
+over): the full chain, every documented control, and the replica panel in Manual/Edit mode.
+Milestone 2, programs and workflow, is in progress; its decisions are in `docs/PROGRESS.md`.
 
 ## How to work in this repo
 
@@ -209,5 +209,4 @@ audio thread and is swapped in atomically.
 
 Record each decision in `docs/PROGRESS.md` once I make it, then move it out of this list.
 
-- The factory preset values: only 2-1 "METAL 1" is documented. The rest are in an "Effect
-  Parameter List" sheet that is not in SRC-001.
+- None at the moment.
