@@ -3,6 +3,7 @@
 #include "core/FiveAProcessor.h"
 #include "core/ParameterSnapshot.h"
 #include "core/ProgramState.h"
+#include "core/ProgramTransition.h"
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -39,11 +40,12 @@ public:
     // 60 dB. Hosts keep processing this long after the input stops.
     double getTailLengthSeconds() const override { return 20.0; }
 
-    int getNumPrograms() override { return 1; }
-    int getCurrentProgram() override { return 0; }
-    void setCurrentProgram(int) override {}
-    const juce::String getProgramName(int) override { return {}; }
-    void changeProgramName(int, const juce::String&) override {}
+    // The 30 program slots as the host's program list, 1-1 … 6-5 (message thread).
+    int getNumPrograms() override { return numProgramSlots; }
+    int getCurrentProgram() override { return programState.selection.selected().slotIndex(); }
+    void setCurrentProgram(int index) override;
+    const juce::String getProgramName(int index) override;
+    void changeProgramName(int index, const juce::String& newName) override; // bank 1 only
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
@@ -56,6 +58,19 @@ public:
 
     // The program memory, selection and mode. Message thread only.
     [[nodiscard]] ProgramState& getProgramState() noexcept { return programState; }
+
+    // Message thread. Selects a program and loads it into the parameters, which discards any
+    // unwritten edits (EV-026); the output dips while it changes (EV-122).
+    void selectProgram(ProgramLocation location);
+
+    // Program Write: stores the current settings, under the selected program's name, into a bank 1
+    // slot, which then becomes the selected program (EV-123). Refused for banks 2–6.
+    bool writeProgram(ProgramLocation destination);
+
+    // The selected program as stored, and the current settings as a program: the display's dot
+    // compares the two (EV-028).
+    [[nodiscard]] const Program& getStoredProgram() const noexcept;
+    [[nodiscard]] Program getEditedProgram() const noexcept;
 
     // The parameters as the engine receives them; for tests and the editor.
     [[nodiscard]] ParameterSnapshot readParameterSnapshot() const noexcept;
@@ -76,6 +91,7 @@ private:
     void timerCallback() override { applyOversamplingSetting(); }
     [[nodiscard]] int requestedOversampling() const noexcept;
     [[nodiscard]] static int readStep(const std::atomic<float>* value) noexcept;
+    void loadIntoParameters(const Program& program);
 
     juce::AudioProcessorValueTreeState parameterState;
 
@@ -120,6 +136,11 @@ private:
     int preparedOversampling = 1;
     int lastLoadedSchemaVersion = 0;
     ProgramState programState;
+
+    // Audio thread: the program-change dip, and the program it holds while fading out.
+    ProgramTransition programTransition;
+    Program heldProgram;
+    ParameterSnapshot lastApplied;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

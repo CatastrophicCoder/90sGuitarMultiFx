@@ -51,6 +51,14 @@ void fillWithNoise(juce::AudioBuffer<float>& buffer, int channels, unsigned int 
             buffer.setSample(channel, sample, distribution(generator));
 }
 
+// What a host's "reset to default" does. A new instance plays program 1-1 (EV-029), so tests of the
+// neutral settings start from here.
+void setAllParametersToDefault(PluginProcessor& processor)
+{
+    for (auto* parameter : processor.getParameters())
+        parameter->setValueNotifyingHost(parameter->getDefaultValue());
+}
+
 bool channelsEqual(const juce::AudioBuffer<float>& a, int channelA, const juce::AudioBuffer<float>& b, int channelB)
 {
     for (int sample = 0; sample < a.getNumSamples(); ++sample)
@@ -65,10 +73,11 @@ bool channelsEqual(const juce::AudioBuffer<float>& a, int channelA, const juce::
 // APVTS starts a timer, which needs the message manager.
 #define FIVEA_JUCE_TEST_SETUP const juce::ScopedJuceInitialiser_GUI juceInitialiser
 
-TEST_CASE("Stereo pass-through through the AudioProcessor at default settings")
+TEST_CASE("Stereo pass-through through the AudioProcessor with every parameter at its default")
 {
     FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
+    setAllParametersToDefault(processor);
     processor.setPlayConfigDetails(2, 2, 48000.0, 256);
     processor.prepareToPlay(48000.0, 256);
 
@@ -87,6 +96,7 @@ TEST_CASE("Mono input feeds both outputs of a stereo layout")
 {
     FIVEA_JUCE_TEST_SETUP;
     PluginProcessor processor;
+    setAllParametersToDefault(processor);
 
     juce::AudioProcessor::BusesLayout layout;
     layout.inputBuses.add(juce::AudioChannelSet::mono());
@@ -111,6 +121,7 @@ TEST_CASE("Default settings stay bit-transparent after a state reload")
 {
     FIVEA_JUCE_TEST_SETUP;
     PluginProcessor source;
+    setAllParametersToDefault(source);
     const auto block = saveState(source);
 
     PluginProcessor processor;
@@ -170,6 +181,7 @@ TEST_CASE("State round trip restores every parameter and the schema version")
 {
     FIVEA_JUCE_TEST_SETUP;
     PluginProcessor source;
+    setAllParametersToDefault(source);
     setPlainValue(source, ParameterIds::inputTrim, -7.5f);
     setPlainValue(source, ParameterIds::outputLevel, 3.2f);
     setPlainValue(source, ParameterIds::globalBypass, 1.0f);
@@ -451,4 +463,38 @@ TEST_CASE("Every effect on, through processBlock: finite, and a mono guitar come
             differs = true;
     }
     CHECK(differs);
+}
+
+TEST_CASE("reset settles on the parameters as they are now")
+{
+    // A host may change parameters and then call reset() (on a transport jump, say) before the next
+    // block. The engine must start the next block settled on the new values, not ramp from the old.
+    FIVEA_JUCE_TEST_SETUP;
+    auto render = [](bool changeAfterPrepare)
+    {
+        PluginProcessor processor;
+        setAllParametersToDefault(processor);
+        if (!changeAfterPrepare)
+        {
+            setPlainValue(processor, ParameterIds::driveEnabled, 1.0f);
+            setPlainValue(processor, ParameterIds::driveDrive, 15.0f);
+        }
+        processor.setPlayConfigDetails(2, 2, 48000.0, 256);
+        processor.prepareToPlay(48000.0, 256);
+        if (changeAfterPrepare)
+        {
+            setPlainValue(processor, ParameterIds::driveEnabled, 1.0f);
+            setPlainValue(processor, ParameterIds::driveDrive, 15.0f);
+            processor.reset();
+        }
+        juce::AudioBuffer<float> buffer{2, 256};
+        fillWithNoise(buffer, 2, 17);
+        juce::MidiBuffer midi;
+        processor.processBlock(buffer, midi);
+        return buffer;
+    };
+    const auto changedThenReset = render(true);
+    const auto preparedThatWay = render(false);
+    CHECK(channelsEqual(changedThenReset, 0, preparedThatWay, 0));
+    CHECK(channelsEqual(changedThenReset, 1, preparedThatWay, 1));
 }

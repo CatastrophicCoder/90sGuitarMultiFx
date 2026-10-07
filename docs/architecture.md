@@ -60,6 +60,8 @@ layer), clamping every step to its documented range.
   bank is pending (EV-025).
 - `sameControl()`, `sameEffectSwitches()`, `sameSettings()`: the display's dot (EV-028).
 - `ProgramMode`: Program or Manual/Edit; starts in Program (EV-029).
+- `ProgramTransition`: the program-change dip and the handshake that keeps the audio thread
+  on the old settings until every new parameter is set (EV-122).
 - `FactoryPrograms`: the 30 slots a new instance starts with: METAL 1 in 2-1 from
   `documented::Metal1` in the model profile, development presets elsewhere, bank 1 as copies
   (EV-010, EV-120).
@@ -75,6 +77,7 @@ layer), clamping every step to its documented range.
 | `PluginProcessor::processBlock` | audio | none | Reads parameters from APVTS atomics into a snapshot; records the input peak (atomic). |
 | `get/setStateInformation` | message | yes | Touches parameters only; the audio thread sees them through the atomics. |
 | `applyOversamplingSetting` | message (timer) | yes | Re-prepares with processing suspended, reports the new latency. |
+| `selectProgram`, `writeProgram`, host program calls | message | yes | Load a program into the parameters between `ProgramTransition::post()` and `complete()`; the audio thread fades out, waits for `complete()`, switches. |
 | Editor | message | yes | Reads parameters through attachments and atomics; the input peak through an atomic exchange. |
 
 Denormals: the engine sets flush-to-zero for the duration of `process()` (`dsp/DenormalGuard.h`),
@@ -89,6 +92,11 @@ independent of the JUCE wrapper's own.
   effect and its feedback; reverb/delay: two engines with the old tail fading out, plan §15).
 - Stepped controls ramp (20 ms) so a step does not click.
 - Global bypass crossfades to the dry input and becomes bit-exact (EV-104).
+- A program change dips the output (EV-122): raised-cosine fade-out of the effects' output on the
+  old program's settings; at the first silent sample the new settings, an engine reset (tails are
+  cut, ramps settle) and a raised-cosine fade-in of the effects' input, so restarted filters and
+  delay lines never record a step. `processBlock` splits the host block at the silent sample.
+  Under global bypass nothing is faded or reset.
 - Oversampling the drive adds 69 (2×) or 76 (4×) samples. The drive's bypass path and the global
   bypass path are delayed to match, so the reported latency is constant.
 - The engine processes in chunks of its announced block size, so longer host blocks are safe.
@@ -143,7 +151,8 @@ native to JUCE.
 `ui::MainPanel` is the replica panel (`panel-specification.md`): drawn in code in one design space
 measured from the reference photo and scaled as a whole. `PanelLayout.h` holds the grid table and
 every coordinate; knobs A–E bind to the selected row's parameters through attachments that are
-rebuilt when the slide switch moves. Program mode, banks and WRITE are drawn and inactive.
+rebuilt when the slide switch moves. Program mode, banks and WRITE are drawn and inactive (the
+processor side exists since Milestone 2 step 4; the panel follows in step 5).
 
 ## Build and dependencies
 

@@ -102,6 +102,9 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   - **Program changes dip the output:** fade out, apply the new program and reset the effects,
     fade in. Tails are cut. How the original sounds during a change is not documented
     (PLACEHOLDER, design choice).
+- 2026-10-07 (Milestone 2 step 4): **a new instance loads and plays program 1-1**, as the original
+  does at power-on (a copy of METAL 1). A host's "reset to default" still sets the parameter
+  defaults, every effect off.
 
 ## Session log
 
@@ -251,4 +254,23 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   from schema 1, unknown/missing/unreadable/out-of-range program values, unreadable and factory
   slots, a newer schema, a rejected document leaving programs alone, and every program control
   matching its host parameter's range. Ten deliberate breakages each caught.
+
+### 2026-10-07: Milestone 2 step 4, programs in the plugin
+
+- `PluginProcessor`: `selectProgram()` (loads a program into the parameters, discarding edits),
+  `writeProgram()` (bank 1 only; the written slot becomes the selected program), the stored and
+  edited program for the dot, and the 30 slots as host programs ("2-1 METAL 1"; bank 1 renamable).
+  A new instance plays 1-1 (owner's decision).
+- `core/ProgramTransition`: the program-change dip and a handshake with the message thread. The
+  first version (linear fade on the output) measured click ratios up to 22 164 on the chorus,
+  reverb and delay programs: a restarted delay line recorded the cut-in signal as a step. Fading
+  the effects' input in instead brought that to 164, and a raised-cosine fade to 8.6; the bound is
+  20.
+- Found and fixed: `PluginProcessor::reset()` settled the engine on the last block's parameters,
+  not the current ones, so a reset after a parameter change still ramped. New test.
+- Milestone 1's pass-through tests now reset every parameter to its default first, since a new
+  instance plays 1-1.
+- 21 new tests (9 transition unit tests, 11 program-change tests, the reset test). Twelve
+  deliberate breakages; one survived (the switch slipping to the next block) until a test of the
+  gap's length was added.
 

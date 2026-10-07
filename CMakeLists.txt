@@ -44,6 +44,7 @@ add_library(fivea_engine STATIC
     src/core/FiveAProcessor.cpp
     src/core/Program.cpp
     src/core/ProgramBank.cpp
+    src/core/ProgramTransition.cpp
     src/core/StepMapping.cpp
     src/dsp/Biquad.cpp
     src/dsp/Compressor.cpp

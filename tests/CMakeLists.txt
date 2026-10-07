@@ -16,6 +16,7 @@ add_executable(fivea_engine_tests
     Unit/NoiseReductionTests.cpp
     Unit/OversamplerTests.cpp
     Unit/ProgramBankTests.cpp
+    Unit/ProgramTransitionTests.cpp
     Unit/SmoothingTests.cpp
     Unit/StepMappingTests.cpp
     Unit/ThreeBandEqTests.cpp
@@ -33,7 +34,9 @@ add_executable(fivea_plugin_tests
     Common/WindowsErrorReporting.cpp
     Integration/PanelTests.cpp
     Integration/PluginProcessorTests.cpp
-    Integration/ProgramStateTests.cpp)
+    Integration/ProgramChangeTests.cpp
+    Integration/ProgramStateTests.cpp
+    Unit/AllocationGuard.cpp)
 
 target_include_directories(fivea_plugin_tests PRIVATE
     $<TARGET_PROPERTY:FiveAPlugin,INCLUDE_DIRECTORIES>)

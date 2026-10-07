@@ -207,8 +207,10 @@ struct NoiseReductionProfile
 struct SwitchingProfile
 {
     double effectCrossfadeSeconds = 0.01;
-    double parameterRampSeconds = 0.02; // stepped controls ramp, so a step does not click
-    double tailCrossfadeSeconds = 0.1;  // Reverb/Delay mode change: old tail fades as the new mode starts (plan §15)
+    double parameterRampSeconds = 0.02;  // stepped controls ramp, so a step does not click
+    double tailCrossfadeSeconds = 0.1;   // Reverb/Delay mode change: old tail fades as the new mode starts (plan §15)
+    double programFadeOutSeconds = 0.01; // program change: output dips (owner's decision 2026-10-07)
+    double programFadeInSeconds = 0.01;
 };
 
 struct FiveAModelProfile

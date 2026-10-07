@@ -39,6 +39,10 @@ PluginProcessor::PluginProcessor()
                 raw(timeEffectMix),      raw(noiseReductionLevel), raw(master)};
     driveOversampling = raw(ParameterIds::driveOversampling);
 
+    // Like the original at power-on (EV-029), a new instance plays the selected program, 1-1.
+    // Nothing is processing yet, so no dip is needed. A host restoring a session overrides it.
+    loadIntoParameters(getStoredProgram());
+
     startTimerHz(10);
 }
 
@@ -92,12 +96,19 @@ void PluginProcessor::prepareToPlay(double sampleRate, int maximumExpectedSample
     engine.prepare({sampleRate, maximumExpectedSamplesPerBlock, getTotalNumOutputChannels(), preparedOversampling});
     engine.setParameters(readParameterSnapshot());
     engine.reset();
+    lastApplied = readParameterSnapshot();
+    const auto& switching = functionalPlaceholderProfile.switching;
+    programTransition.prepare(sampleRate, switching.programFadeOutSeconds, switching.programFadeInSeconds);
     setLatencySamples(engine.getLatencySamples());
 }
 
 void PluginProcessor::reset()
 {
+    // Settle on the parameters as they are now, not on those of the last processed block.
+    lastApplied = readParameterSnapshot();
+    engine.setParameters(lastApplied);
     engine.reset();
+    programTransition.reset();
 }
 
 ParameterSnapshot PluginProcessor::readParameterSnapshot() const noexcept
@@ -157,8 +168,128 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
     {
     }
 
-    engine.setParameters(snapshot);
-    engine.process({buffer.getArrayOfWritePointers(), outputChannels, numSamples});
+    // A program change: hold the old program while fading out, switch once silent and the new
+    // parameters are all set, then fade in (ProgramTransition). Without one, this is a single pass.
+    if (const bool wasHolding = programTransition.holdsSettings();
+        programTransition.poll(!snapshot.globalBypass) && !wasHolding)
+        heldProgram = programFrom(lastApplied);
+
+    auto live = snapshot;
+    std::array<float*, 2> pointers{};
+    const int channels = std::min(outputChannels, static_cast<int>(pointers.size()));
+    for (int start = 0; start < numSamples;)
+    {
+        if (programTransition.readyToSwitch())
+        {
+            const bool cutTails = programTransition.isSilent();
+            programTransition.switched();
+            live = readParameterSnapshot();
+            engine.setParameters(live);
+            if (cutTails)
+                engine.reset(); // settles every ramp on the new program, and clears the old tails
+        }
+
+        int length = numSamples - start;
+        if (programTransition.isFadingOut())
+            length = std::min(length, programTransition.samplesUntilSilent());
+
+        auto settings = live;
+        if (programTransition.holdsSettings())
+            applyProgram(heldProgram, settings);
+        engine.setParameters(settings);
+        lastApplied = settings;
+
+        for (int channel = 0; channel < channels; ++channel)
+            pointers[static_cast<std::size_t>(channel)] = buffer.getWritePointer(channel, start);
+        const AudioBufferView part{pointers.data(), channels, length};
+        if (programTransition.isFadingIn())
+        {
+            programTransition.applyGain(part); // fades the input in (see ProgramTransition)
+            engine.process(part);
+        }
+        else
+        {
+            if (!programTransition.isSilent())
+                engine.process(part);
+            programTransition.applyGain(part);
+        }
+        start += length;
+    }
+}
+
+void PluginProcessor::loadIntoParameters(const Program& program)
+{
+    auto set = [this](const char* id, int value)
+    {
+        auto* parameter = parameterState.getParameter(id);
+        // Choices (the MODEs) hold an index from 0; programs hold the documented step from 1.
+        const bool isChoice = dynamic_cast<juce::AudioParameterChoice*>(parameter) != nullptr;
+        parameter->setValueNotifyingHost(parameter->convertTo0to1(static_cast<float>(isChoice ? value - 1 : value)));
+    };
+
+    for (std::size_t block = 0; block < numEffectBlocks; ++block)
+        set(ParameterIds::effectEnabled[block], program.effectEnabled[block] ? 1 : 0);
+    for (int index = 0; index < numProgramControls; ++index)
+    {
+        const auto control = static_cast<ProgramControl>(index);
+        set(parameterIdFor(control), controlValue(program, control));
+    }
+}
+
+void PluginProcessor::selectProgram(ProgramLocation location)
+{
+    programState.selection.select(location);
+    const auto ticket = programTransition.post();
+    loadIntoParameters(programState.bank.at(programState.selection.selected()));
+    programTransition.complete(ticket);
+}
+
+bool PluginProcessor::writeProgram(ProgramLocation destination)
+{
+    const auto program = programFrom(readParameterSnapshot(), getStoredProgram().name);
+    if (!programState.bank.write(destination, program))
+        return false;
+    programState.selection.select(destination);
+    return true;
+}
+
+const Program& PluginProcessor::getStoredProgram() const noexcept
+{
+    return programState.bank.at(programState.selection.selected());
+}
+
+Program PluginProcessor::getEditedProgram() const noexcept
+{
+    return programFrom(readParameterSnapshot(), getStoredProgram().name);
+}
+
+namespace
+{
+ProgramLocation locationOfSlot(int index)
+{
+    const int slot = std::clamp(index, 0, numProgramSlots - 1);
+    return {slot / programsPerBank + 1, slot % programsPerBank + 1};
+}
+} // namespace
+
+void PluginProcessor::setCurrentProgram(int index)
+{
+    selectProgram(locationOfSlot(index));
+}
+
+const juce::String PluginProcessor::getProgramName(int index)
+{
+    const auto location = locationOfSlot(index);
+    return juce::String(location.bank) + "-" + juce::String(location.program) + " " +
+           juce::String{std::string{programState.bank.at(location).name.view()}};
+}
+
+void PluginProcessor::changeProgramName(int index, const juce::String& newName)
+{
+    const auto location = locationOfSlot(index);
+    auto program = programState.bank.at(location);
+    program.name = ProgramName::from(newName.toStdString());
+    programState.bank.write(location, program); // refused outside bank 1
 }
 
 juce::AudioProcessorParameter* PluginProcessor::getBypassParameter() const
