@@ -28,6 +28,8 @@ public:
         int sens = 8;
         int attack = 4;
         int level = 12; // unity
+
+        bool operator==(const Settings&) const = default;
     };
 
     void prepare(double newSampleRate, int newNumChannels, const FiveAModelProfile& modelProfile) noexcept;

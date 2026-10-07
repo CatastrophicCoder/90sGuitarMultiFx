@@ -30,6 +30,8 @@ public:
         int depth = 8;
         int feedback = 0;
         int mix = 8;
+
+        bool operator==(const Settings&) const = default;
     };
 
     void prepare(double newSampleRate, int newNumChannels, const FiveAModelProfile& modelProfile);

@@ -28,6 +28,8 @@ public:
         int mid = 0;
         int treble = 0;
         int trim = 15; // unity
+
+        bool operator==(const Settings&) const = default;
     };
 
     static constexpr int coefficientInterval = 16;

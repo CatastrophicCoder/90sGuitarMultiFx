@@ -48,6 +48,19 @@ All values that concern the original unit live in `src/core/ModelProfile.h` (pla
 `src/core/StepMapping` turns a documented control step into an algorithm value (plan §7.3's middle
 layer), clamping every step to its documented range.
 
+## Programs
+
+`src/core/Program.h` and `ProgramBank` (engine side, no JUCE) model the original's program memory:
+
+- `Program`: what one program stores (EV-024), inline and allocation-free to copy, with a name
+  for the host's program list. `programFrom()` and `applyProgram()` move it in and out of a
+  `ParameterSnapshot`, leaving input trim, output level and global bypass alone (EV-119).
+- `ProgramBank`: the 30 slots; `write()` accepts bank 1 only.
+- `ProgramSelection`: the playing program, and the bank the display shows, which differ while a
+  bank is pending (EV-025).
+- `sameControl()`, `sameEffectSwitches()`, `sameSettings()`: the display's dot (EV-028).
+- `ProgramMode`: Program or Manual/Edit; starts in Program (EV-029).
+
 ## Threading and real-time rules
 
 | Call | Thread | Allocation | Notes |
@@ -146,5 +159,5 @@ rebuilt when the slide switch moves. Program mode, banks and WRITE are drawn and
 | §6.2: hardware-rate mode | Not yet | Milestone 3 |
 | §13: `FixedPointProfile` | Not created | Disabled until evidence supports a configuration |
 | §17.2: no copied trade dress | A close replica of the panel, without the original's names, logo or artwork | Owner's decision, plan §17.2 amended |
-| §5 file layout: added | `AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h`, `ModelProfile.h`, `StepMapping`, `BypassCrossfade.h`, `DenormalGuard.h`, `Biquad`, `Oversampler`, `Waveshapers.h`, `Reverb`, `NoiseReduction`; the panel's `PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `docs/source-register.md`, `panel-specification.md` | Pieces the plan's sections or the evidence rules need |
+| §5 file layout: added | `AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h`, `ModelProfile.h`, `StepMapping`, `Program`, `ProgramBank`, `ProgramMode.h`, `BypassCrossfade.h`, `DenormalGuard.h`, `Biquad`, `Oversampler`, `Waveshapers.h`, `Reverb`, `NoiseReduction`; the panel's `PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `docs/source-register.md`, `panel-specification.md` | Pieces the plan's sections or the evidence rules need |
 | §5 file layout: not yet | `ProgramDisplay` (Milestone 2), `tools/*` and `docs/measurement-protocol.md` (Milestone 4), `FixedPoint` | — |

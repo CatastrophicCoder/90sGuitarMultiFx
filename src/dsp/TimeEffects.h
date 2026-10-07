@@ -63,6 +63,8 @@ public:
         int fine = 0;
         int feedback = 4;
         int mix = 8;
+
+        bool operator==(const Settings&) const = default;
     };
 
     void prepare(double newSampleRate, int newNumChannels, const FiveAModelProfile& modelProfile); // allocates

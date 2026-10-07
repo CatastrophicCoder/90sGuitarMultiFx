@@ -215,3 +215,15 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 - The first push of that fix broke the Windows build: the new Windows-only test file looped over a
   braced list without including `<initializer_list>`, and no other platform compiles it. Replaced
   with a plain array.
+
+### 2026-10-07: Milestone 2 step 1, the program model
+
+- `core/Program` and `core/ProgramBank`, engine side: a program's contents, 30 slots with bank 1
+  the only writable one, the selected program versus the bank shown while one is pending, and the
+  three comparisons behind the display's dot. Programs copy without allocating (names are stored
+  inline). The five blocks' settings structs gained `operator==`.
+- 11 tests in `ProgramBankTests`; nine deliberate breakages (writing to a factory bank, the
+  shown bank changing the selection, a field copied into the wrong place, the dot ignoring a
+  change, and so on) were each caught.
+- Evidence: EV-024–029 from the owner's manual pp. 4–9, EV-119 for what is not program data.
+

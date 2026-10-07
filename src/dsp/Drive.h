@@ -62,6 +62,8 @@ public:
         int drive = 8;
         int tone = 8;
         int level = 12; // unity
+
+        bool operator==(const Settings&) const = default;
     };
 
     // The oversampling factor (1, 2 or 4) is fixed here: changing it changes the latency, which

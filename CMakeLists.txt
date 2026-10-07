@@ -41,6 +41,8 @@ add_subdirectory(external/JUCE)
 # plugin formats (CLAP) without touching DSP code. See docs/architecture.md.
 add_library(fivea_engine STATIC
     src/core/FiveAProcessor.cpp
+    src/core/Program.cpp
+    src/core/ProgramBank.cpp
     src/core/StepMapping.cpp
     src/dsp/Biquad.cpp
     src/dsp/Compressor.cpp
