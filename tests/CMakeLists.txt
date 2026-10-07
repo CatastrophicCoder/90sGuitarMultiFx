@@ -17,6 +17,7 @@ add_executable(fivea_engine_tests
     Unit/OversamplerTests.cpp
     Unit/ProgramBankTests.cpp
     Unit/ProgramTransitionTests.cpp
+    Unit/RationalResamplerTests.cpp
     Unit/SmoothingTests.cpp
     Unit/StepMappingTests.cpp
     Unit/ThreeBandEqTests.cpp

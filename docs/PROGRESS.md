@@ -11,7 +11,7 @@ versus assumed is in `docs/evidence-register.md`.
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
 | 1 Complete functional chain | Done (2026-10-07) | All nine steps done; acceptance below. CI green on all platforms (`d29e268`). Outstanding: listening in a DAW and comparing the panel with the original. |
 | 2 Programs and workflow | Done (2026-10-07) | Acceptance below. CI green on all platforms (`b20456b`). Outstanding: listening to program changes in a DAW. |
-| 3 Hardware-rate mode | Not started | |
+| 3 Hardware-rate mode | In progress | Step 1 of 4 done: the resampler. |
 | 4 Measurement tooling | Not started | |
 | 5 Measurement-driven calibration | Not started | Needs access to a physical unit. |
 | 6 Release hardening | Not started | Packaging (`.pkg`/`.dmg`) and `CHANGELOG.md` arrive here, as in the other Catastrophic Audio projects. |
@@ -123,6 +123,11 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 - 2026-10-07 (Milestone 2 step 4): **a new instance loads and plays program 1-1**, as the original
   does at power-on (a copy of METAL 1). A host's "reset to default" still sets the parameter
   defaults, every effect off.
+- 2026-10-07 (after Milestone 2, from the second listening test): **the reverbs are levelled** so
+  that MIX 15 is the documented equal balance; the factory programs' MIX values stay as they are.
+- 2026-10-07 (Milestone 3 plan): **the resampler is our own**, in the engine (a polyphase
+  windowed-sinc filter with exact whole-number ratios), not JUCE's interpolators or a third-party
+  library. **A new instance processes at the host rate**; the 44.1 kHz mode is an option.
 
 ## Session log
 
@@ -341,3 +346,20 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 - New test: the wet level at MIX 15 for every reverb mode and Echoverb, at five rates. Two
   deliberate breakages caught (levelling removed; Echoverb's gains back at 0.7).
 - Evidence: EV-125 added, EV-116 updated.
+
+### 2026-10-07: Milestone 3 step 1, the resampler
+
+- `dsp/RationalResampler`: converts between rates whose ratio reduces to whole numbers (147/160
+  for 48 to 44.1 kHz), as a polyphase Kaiser-windowed sinc. Flat to 20 kHz (-0.007 dB at 20 kHz,
+  error below -105 dB up to 19 kHz), at least 100 dB down from 22.05 kHz (measured 102.9 dB at
+  worst), linear phase with a whole-number delay, an optional extra delay. Positions are counted
+  in whole numbers, so the output count is exact block after block; a ratio that does not fit a
+  table of about a million coefficients is refused rather than approximated.
+- Cost, a stereo round trip host to 44.1 kHz and back (Release, this Mac): 0.6 % of one core at
+  48 kHz, 1.5 % at 96 kHz, 3.3 % at 192 kHz.
+- The Kaiser window's Bessel function moved to `dsp/Kaiser.h`, shared with the oversampler.
+- 12 new tests at 48, 88.2, 96, 176.4 and 192 kHz each way. The first design measured 99.85 dB at
+  the stopband edge, so the filter is designed for 103 dB. Nine deliberate breakages: six caught;
+  three could not change the output (a per-channel write position, now shared; the position after
+  a reset; an even filter length).
+- Evidence: EV-126 added.

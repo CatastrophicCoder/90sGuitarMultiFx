@@ -84,11 +84,13 @@ system; per plan §13 they are not turned into filters, noise or bit reduction.
 | EV-123 | After Program Write the written slot becomes the selected program, and keeps the source program's name | PLACEHOLDER (design choice) | SRC-001 p. 8 describes the write but not what is selected afterwards; the original shows no names | `PluginProcessor::writeProgram`. | — | What the original selects after a write. |
 | EV-124 | Panel details the manual leaves open: knobs A–E do nothing in Program mode (the manual describes editing in Edit mode only); the EFCT/PROG LEDs are unlit while another bank is pending; the display keeps flashing "1" after a WRITE destination is picked, which lights that footswitch's LED; WRITE before a destination is picked does nothing; the BYPASS blink is on the lit mode LED | INFERRED (knobs); PLACEHOLDER (design choice) for the rest | SRC-001 pp. 4–9 | `ui/MainPanel`. | — | All of them: observable on a unit. |
 | EV-125 | MIX 15's "50/50" is read as equal level: each reverb voicing's wet output is levelled to its input's level on a steady broadband signal (scaled by its impulse response energy, computed in `prepare()` at the running sample rate), and Echoverb's two gains are set so it is at the dry level at F.BACK 0 | INFERRED | SRC-001 pp. 11–12 give MIX 15 as effect and direct sound 50/50; how the balance was measured is not stated | `dsp/Reverb`, Echoverb gains in `ModelProfile.h`. Wet ÷ dry at MIX 15 on noise, measured 2026-10-07: +3.8 to +7.9 dB before, within ±0.12 dB after, at 44.1–192 kHz. | — | The original's wet level at MIX 15, and whether it is balanced on a steady or a transient signal: measurable on a unit. |
+| EV-126 | Rate conversion for the hardware-rate mode: polyphase Kaiser-windowed sinc at exact whole-number ratios; flat to 20 kHz (±0.01 dB), at least 100 dB of rejection from the lower rate's Nyquist, linear phase; rates that do not reduce to a table of about a million coefficients are refused | PLACEHOLDER (design choice) | Owner's decision 2026-10-07 (our own resampler); the original's own converters are not modelled (plan §6.2) | `dsp/RationalResampler`. Measured 2026-10-07: -0.007 dB at 20 kHz, 102.9 dB worst-case rejection, 48–192 kHz. | — | — |
 
 ## Change log
 
 | Date | Change |
 |------|--------|
+| 2026-10-07 | M3 step 1: EV-126 (the resampler) added. |
 | 2026-10-07 | After M2, from the owner's second listening test: EV-125 (reverbs levelled to MIX's equal balance) added; EV-116 updated (Echoverb gains). |
 | 2026-10-04 | Register created for Milestone 0. All CONFIRMED rows taken from the plan, pending primary citations. |
 | 2026-10-07 | After M2, from the owner's listening test: EV-112 (output trim follows DRIVE) and EV-113 (4× oversampling by default) updated. |

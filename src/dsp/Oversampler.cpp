@@ -1,5 +1,7 @@
 #include "dsp/Oversampler.h"
 
+#include "dsp/Kaiser.h"
+
 #include <algorithm>
 #include <cmath>
 #include <numbers>
@@ -15,21 +17,6 @@ namespace
 constexpr int firstStageTaps = 139; // transition 20 → 24.1 kHz at a 44.1 kHz base rate
 constexpr int secondStageTaps = 27; // the second stage only has to reject images above 2× rate
 constexpr double kaiserBeta = 10.06;
-
-// Modified Bessel function of the first kind, order zero, by its power series.
-double besselI0(double x)
-{
-    double sum = 1.0;
-    double term = 1.0;
-    for (int k = 1; k < 50; ++k)
-    {
-        term *= (x / (2.0 * k)) * (x / (2.0 * k));
-        sum += term;
-        if (term < 1.0e-12 * sum)
-            break;
-    }
-    return sum;
-}
 } // namespace
 
 void Oversampler::History::resize(int newLength)

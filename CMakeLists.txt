@@ -53,6 +53,7 @@ add_library(fivea_engine STATIC
     src/dsp/Modulation.cpp
     src/dsp/NoiseReduction.cpp
     src/dsp/Oversampler.cpp
+    src/dsp/RationalResampler.cpp
     src/dsp/Reverb.cpp
     src/dsp/TimeEffects.cpp
     src/dsp/ThreeBandEq.cpp)

@@ -24,6 +24,7 @@ match the original; the sound does not claim to.
  Blocks                   src/dsp      NoiseReduction, Compressor, Drive (+ Oversampler, Waveshapers),
                                        ThreeBandEq (+ Biquad), Modulation (+ DelayLine),
                                        TimeEffects (+ Reverb, DelayLine), BypassCrossfade, Smoothing
+                                       RationalResampler (+ Kaiser), for the hardware-rate mode
 ```
 
 - **`fivea_engine`** (static library): `src/core` (except the two JUCE files below) and `src/dsp`.
