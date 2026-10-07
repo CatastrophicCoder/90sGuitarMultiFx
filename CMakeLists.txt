@@ -40,6 +40,7 @@ add_subdirectory(external/JUCE)
 # Pure C++ with no JUCE dependency, so the signal chain can be tested and later wrapped for other
 # plugin formats (CLAP) without touching DSP code. See docs/architecture.md.
 add_library(fivea_engine STATIC
+    src/core/FactoryPrograms.cpp
     src/core/FiveAProcessor.cpp
     src/core/Program.cpp
     src/core/ProgramBank.cpp

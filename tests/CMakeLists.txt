@@ -10,6 +10,7 @@ add_executable(fivea_engine_tests
     Unit/CompressorTests.cpp
     Unit/DenormalGuardTests.cpp
     Unit/DriveTests.cpp
+    Unit/FactoryProgramsTests.cpp
     Unit/FiveAProcessorTests.cpp
     Unit/ModulationTests.cpp
     Unit/NoiseReductionTests.cpp

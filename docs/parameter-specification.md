@@ -130,6 +130,45 @@ Compressor off; DIST/OD Mode 1, Drive 14, Tone 15, Level 11; 3 Band EQ Bass 6, M
 Mid 5, Treble 1, Trim 12; Chorus/Flanger off; Reverb/Delay Mode 4, Mix 5. (Utility values not
 shown.) The full preset table ("attached Effect Parameter List", p. 7) is not part of this PDF.
 
+### The plugin's factory programs (Milestone 2)
+
+From `src/core/FactoryPrograms.cpp`. 2-1 is METAL 1 as documented above; its controls the manual
+does not show keep the defaults (PLACEHOLDER). Every other program is this project's own
+**development preset**, named "DEV …", and makes no claim about the original's presets. A
+switched-off effect's controls are not listed (they keep the defaults); the reverb modes have no
+TIME, FINE or F.BACK.
+
+| Slot | Name | COMP SENS/ATTACK/LEVEL | DIST/OD MODE, DRIVE/TONE/LEVEL | 3 BAND EQ BASS/MID FREQ/MID/TREBLE/TRIM | CHORUS/FL MODE, SPEED/DEPTH/F.BACK/MIX | REV/DELAY MODE, TIME/FINE/F.BACK/MIX | NR LEVEL | MASTER |
+|---|---|---|---|---|---|---|---|---|
+| 2-1 | METAL 1 | off | Distortion, 14/15/11 | 6/3/5/1/12 | off | Plate, mix 5 | 0 | 12 |
+| 2-2 | DEV Soft Drive | off | Overdrive, 6/9/12 | off | off | off | 0 | 12 |
+| 2-3 | DEV Hard Drive | off | Distortion, 11/8/11 | 2/4/3/1/13 | off | Room, mix 4 | 0 | 12 |
+| 2-4 | DEV Crunch | 6/4/12 | Overdrive, 10/10/12 | off | off | off | 0 | 12 |
+| 2-5 | DEV Lead Drive | off | Distortion, 13/11/11 | 0/5/4/0/13 | off | Delay, 3/5/5/6 | 4 | 12 |
+| 3-1 | DEV Clean Compression | 8/4/12 | off | off | off | off | 0 | 12 |
+| 3-2 | DEV Squeeze | 13/6/13 | off | off | off | off | 0 | 12 |
+| 3-3 | DEV Clean Bright | 5/4/12 | off | -1/3/0/3/15 | off | off | 0 | 12 |
+| 3-4 | DEV Clean Warm | off | off | 3/2/2/-2/15 | off | off | 0 | 12 |
+| 3-5 | DEV Clean Slap | 10/7/12 | off | 0/3/0/2/15 | Slapback, 0/0/0/8 | off | 0 | 12 |
+| 4-1 | DEV Wide Chorus | off | off | off | Chorus 2, 4/10/0/15 | off | 0 | 12 |
+| 4-2 | DEV Light Chorus | off | off | off | Chorus 1, 6/5/0/9 | off | 0 | 12 |
+| 4-3 | DEV Jet Flanger | off | off | off | Flanger 1, 2/12/11/15 | off | 0 | 12 |
+| 4-4 | DEV Slow Flanger | off | off | off | Flanger 2, 1/9/7/12 | off | 0 | 12 |
+| 4-5 | DEV Slapback | off | off | off | Slapback, 0/0/3/10 | off | 0 | 12 |
+| 5-1 | DEV Short Ambience | off | off | off | off | Room, mix 6 | 0 | 12 |
+| 5-2 | DEV Big Hall | off | off | off | off | Hall, mix 9 | 0 | 12 |
+| 5-3 | DEV Plate | off | off | off | off | Plate, mix 8 | 0 | 12 |
+| 5-4 | DEV Echo Delay | off | off | off | off | Delay, 3/8/6/9 | 0 | 12 |
+| 5-5 | DEV Echoverb | off | off | off | off | Echoverb, 2/5/4/9 | 0 | 12 |
+| 6-1 | DEV Drive Chorus Hall | off | Overdrive, 9/9/12 | off | Chorus 1, 5/6/0/8 | Hall, mix 6 | 0 | 12 |
+| 6-2 | DEV Ensemble Lead | 7/3/12 | Distortion, 12/10/11 | 1/5/3/1/13 | off | Ensemble Hall, mix 7 | 3 | 12 |
+| 6-3 | DEV Flange Drive | off | Distortion, 10/9/11 | off | Flanger 1, 3/10/9/12 | Room, mix 5 | 0 | 12 |
+| 6-4 | DEV Live Stage | 6/4/12 | Overdrive, 7/8/12 | off | off | Live Stage, mix 7 | 0 | 12 |
+| 6-5 | DEV Full Chain | 8/4/12 | Overdrive, 8/9/12 | 1/3/1/1/14 | Chorus 2, 3/7/0/8 | Echoverb, 2/0/3/7 | 2 | 12 |
+
+Bank 1 starts as copies of 2-1, 3-1, 4-1, 5-1 and 6-1, as the original's factory copied five
+presets into its user bank (SRC-001 p. 8); which five the original copied is not documented.
+
 ## Placeholder mappings (Milestone 1)
 
 Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProfile.h`

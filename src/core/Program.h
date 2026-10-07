@@ -104,6 +104,9 @@ enum class ProgramControl
 
 inline constexpr int numProgramControls = static_cast<int>(ProgramControl::Master) + 1;
 
+// The control's documented range (SRC-001 pp. 7, 10–12).
+[[nodiscard]] documented::StepRange controlRange(ProgramControl control) noexcept;
+
 [[nodiscard]] int controlValue(const Program& program, ProgramControl control) noexcept;
 int& controlValue(Program& program, ProgramControl control) noexcept;
 

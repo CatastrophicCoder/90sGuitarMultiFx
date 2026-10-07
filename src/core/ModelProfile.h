@@ -83,6 +83,25 @@ inline constexpr int delayMaximumTimeStep = 4;
 // MIX: 15 = effect and direct sound 50/50, 0 = direct only (SRC-001 pp. 11–12).
 inline constexpr int mixEqualBalanceStep = 15;
 
+// The one factory program the owner's manual shows, 2-1 "METAL 1" (SRC-001 p. 6): Compressor and
+// Chorus/Flanger off; the values below. Not shown: the switched-off effects' controls, Reverb/Delay
+// TIME, FINE and F.BACK, and the Utility page (NR LEVEL, MASTER).
+struct Metal1
+{
+    static constexpr const char* name = "METAL 1";
+    static constexpr int driveMode = 1; // Distortion
+    static constexpr int driveDrive = 14;
+    static constexpr int driveTone = 15;
+    static constexpr int driveLevel = 11;
+    static constexpr int eqBass = 6;
+    static constexpr int eqMidFrequency = 3;
+    static constexpr int eqMid = 5;
+    static constexpr int eqTreble = 1;
+    static constexpr int eqTrim = 12;
+    static constexpr int timeEffectMode = 4; // Plate
+    static constexpr int timeEffectMix = 5;
+};
+
 } // namespace documented
 
 // --- Placeholder step mappings (all PLACEHOLDER; see the file comment) -------------------------

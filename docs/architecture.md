@@ -60,6 +60,9 @@ layer), clamping every step to its documented range.
   bank is pending (EV-025).
 - `sameControl()`, `sameEffectSwitches()`, `sameSettings()`: the display's dot (EV-028).
 - `ProgramMode`: Program or Manual/Edit; starts in Program (EV-029).
+- `FactoryPrograms`: the 30 slots a new instance starts with: METAL 1 in 2-1 from
+  `documented::Metal1` in the model profile, development presets elsewhere, bank 1 as copies
+  (EV-010, EV-120).
 
 ## Threading and real-time rules
 
@@ -159,5 +162,5 @@ rebuilt when the slide switch moves. Program mode, banks and WRITE are drawn and
 | §6.2: hardware-rate mode | Not yet | Milestone 3 |
 | §13: `FixedPointProfile` | Not created | Disabled until evidence supports a configuration |
 | §17.2: no copied trade dress | A close replica of the panel, without the original's names, logo or artwork | Owner's decision, plan §17.2 amended |
-| §5 file layout: added | `AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h`, `ModelProfile.h`, `StepMapping`, `Program`, `ProgramBank`, `ProgramMode.h`, `BypassCrossfade.h`, `DenormalGuard.h`, `Biquad`, `Oversampler`, `Waveshapers.h`, `Reverb`, `NoiseReduction`; the panel's `PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `docs/source-register.md`, `panel-specification.md` | Pieces the plan's sections or the evidence rules need |
+| §5 file layout: added | `AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h`, `ModelProfile.h`, `StepMapping`, `Program`, `ProgramBank`, `ProgramMode.h`, `FactoryPrograms`, `BypassCrossfade.h`, `DenormalGuard.h`, `Biquad`, `Oversampler`, `Waveshapers.h`, `Reverb`, `NoiseReduction`; the panel's `PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `docs/source-register.md`, `panel-specification.md` | Pieces the plan's sections or the evidence rules need |
 | §5 file layout: not yet | `ProgramDisplay` (Milestone 2), `tools/*` and `docs/measurement-protocol.md` (Milestone 4), `FixedPoint` | — |

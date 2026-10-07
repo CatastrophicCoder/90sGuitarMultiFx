@@ -100,6 +100,35 @@ int controlValue(const Program& program, ProgramControl control) noexcept
     return valueOf(program, control);
 }
 
+documented::StepRange controlRange(ProgramControl control) noexcept
+{
+    switch (control)
+    {
+    case ProgramControl::CompressorSens:
+        return documented::compressorSens;
+    case ProgramControl::CompressorAttack:
+        return documented::compressorAttack;
+    case ProgramControl::DriveMode:
+        return documented::driveMode;
+    case ProgramControl::EqualiserBass:
+    case ProgramControl::EqualiserMid:
+    case ProgramControl::EqualiserTreble:
+        return documented::eqBandGain;
+    case ProgramControl::EqualiserMidFrequency:
+        return documented::eqMidFrequency;
+    case ProgramControl::ModulationMode:
+        return documented::modulationMode;
+    case ProgramControl::TimeEffectMode:
+        return documented::timeEffectMode;
+    case ProgramControl::TimeEffectTime:
+        return {0, documented::delayMaximumTimeStep};
+    case ProgramControl::TimeEffectFine:
+        return documented::delayFine;
+    default:
+        return documented::zeroToFifteen;
+    }
+}
+
 bool sameControl(const Program& a, const Program& b, ProgramControl control) noexcept
 {
     return controlValue(a, control) == controlValue(b, control);

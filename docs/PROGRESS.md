@@ -227,3 +227,17 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   change, and so on) were each caught.
 - Evidence: EV-024–029 from the owner's manual pp. 4–9, EV-119 for what is not program data.
 
+### 2026-10-07: Milestone 2 step 2, factory content
+
+- `core/FactoryPrograms`: METAL 1 in 2-1 from the manual's values (now in the model profile as
+  `documented::Metal1`), 24 development presets named "DEV …" across banks 2–6 (drive; clean and
+  compressed; modulation; reverb and delay; combinations), and bank 1 as copies of 2-1, 3-1, 4-1,
+  5-1, 6-1. Listed in `parameter-specification.md`, generated from the code.
+- 7 tests: METAL 1 checked against the manual's numbers typed in separately; names and the "DEV"
+  marking; bank 1's copies; every value within its documented range (`controlRange()`, new);
+  Echoverb's TIME limit; every mode of every effect used; each of the 30 programs through the
+  chain. Ten deliberate breakages each caught.
+- Found while mutation testing: restoring a file from its backup kept the backup's older
+  timestamp, so the build kept the broken objects. The source was right; the scripts now touch
+  restored files, and the build was redone from scratch.
+
