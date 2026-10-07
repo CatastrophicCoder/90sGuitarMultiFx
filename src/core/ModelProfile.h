@@ -191,8 +191,10 @@ struct ReverbProfile
         {.decaySeconds = 1.8f, .highFrequencyRatio = 0.75f, .size = 0.6f, .preDelayMs = 0.0f, .diffusion = 0.7f},
         {.decaySeconds = 1.4f, .highFrequencyRatio = 0.55f, .size = 0.8f, .preDelayMs = 12.0f, .diffusion = 0.6f},
     }};
-    float echoverbDelayGain = 0.7f;  // Echoverb: echoes …
-    float echoverbReverbGain = 0.7f; // … plus a reverb of the dry signal and the echoes
+    // 0.7 each before the reverb was levelled; 0.575 brings Echoverb to the dry level at F.BACK 0, as
+    // the reverb modes are (EV-125).
+    float echoverbDelayGain = 0.575f;  // Echoverb: echoes …
+    float echoverbReverbGain = 0.575f; // … plus a reverb of the dry signal and the echoes
 };
 
 // NR LEVEL is documented only as a noise-reduction threshold, "the larger this value, the higher

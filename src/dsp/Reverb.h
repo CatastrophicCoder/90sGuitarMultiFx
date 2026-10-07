@@ -18,6 +18,10 @@ namespace fivea::dsp
 //   AES 90th Convention, 1991, preprint 3030.
 //   Left and right are taken from the lines with two different sign patterns, so they decorrelate.
 //
+// Each voicing's output is levelled so its wet signal is as loud as its input on a steady
+// broadband signal: MIX 15 is then an equal balance (EV-125). The level comes from the voicing's
+// impulse response energy (for white noise, the output power gain), measured in prepare().
+//
 // Memory is allocated in prepare() for the largest voicing; setVoicing() does not allocate and is
 // safe on the audio thread, but should be followed by reset() (the engine switches voicings only
 // on a cleared network).
@@ -28,7 +32,7 @@ public:
     static constexpr int numDiffusers = 4;
 
     void prepare(double newSampleRate, const ReverbProfile& reverbProfile); // allocates
-    void setVoicing(const ReverbVoicing& voicing) noexcept;
+    void setVoicing(std::size_t voicingIndex) noexcept;                     // an index into the profile's voicings
     void reset() noexcept;
 
     void processSample(float input, float& left, float& right) noexcept;
@@ -48,7 +52,18 @@ private:
         }
     };
 
+    void configure(const ReverbVoicing& voicing) noexcept;
+    [[nodiscard]] double impulseResponseEnergy(const ReverbVoicing& voicing) noexcept;
+
     double sampleRate = 44100.0;
+    std::array<ReverbVoicing, ReverbProfile{}.voicings.size()> voicings = ReverbProfile{}.voicings;
+    std::array<float, ReverbProfile{}.voicings.size()> levelGains = []
+    {
+        std::array<float, ReverbProfile{}.voicings.size()> gains{};
+        gains.fill(0.5f);
+        return gains;
+    }();
+    float outputGain = 0.5f;
     Line preDelay;
     std::array<Line, numDiffusers> diffusers;
     std::array<Line, numLines> lines;

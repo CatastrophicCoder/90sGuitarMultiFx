@@ -329,3 +329,15 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   Distortion programs' aliasing at 4×, no factory program over full scale. `fillPluck` added to the
   test signals. Three deliberate breakages each caught.
 
+### 2026-10-07: second listening test, reverbs levelled
+
+- Heard: much better; the distortion programs with reverb or delay far too wet. Measured: MIX 15,
+  documented as an equal balance, put every reverb's wet signal 3.8 to 7.9 dB above the dry (the
+  delay was level). METAL 1's documented MIX 5 left its plate only 2.5 dB below the guitar.
+- By decision: the reverbs levelled. Each voicing's output is scaled by its impulse response
+  energy, computed in `prepare()`, so MIX 15 is within ±0.12 dB of an equal balance at every rate;
+  Echoverb's echo and reverb gains went from 0.7 to 0.575 for the same result. Every reverb program
+  is 4 to 8 dB drier, the clean ones included; the factory programs' MIX values are unchanged.
+- New test: the wet level at MIX 15 for every reverb mode and Echoverb, at five rates. Two
+  deliberate breakages caught (levelling removed; Echoverb's gains back at 0.7).
+- Evidence: EV-125 added, EV-116 updated.

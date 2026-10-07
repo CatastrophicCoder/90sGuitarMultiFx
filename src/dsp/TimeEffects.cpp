@@ -76,7 +76,7 @@ void TimeEffectEngine::configure(TimeEffectMode newMode, int time, int fine, int
         const auto voicingIndex = mode == TimeEffectMode::Echoverb
                                       ? std::size_t{0} // Echoverb reverberates with the Hall voicing (placeholder)
                                       : static_cast<std::size_t>(mode) - 1;
-        reverb.setVoicing(reverbProfile.voicings[voicingIndex]);
+        reverb.setVoicing(voicingIndex);
     }
 
     if (immediate)

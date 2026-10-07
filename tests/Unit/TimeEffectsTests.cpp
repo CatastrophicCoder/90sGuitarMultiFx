@@ -269,6 +269,42 @@ TEST_CASE("Tails die away instead of building up")
     CHECK(peaks[29] < 1.0e-3f);
 }
 
+TEST_CASE("Every reverb mode's wet output is as loud as the dry at MIX 15")
+{
+    // MIX 15 is "effect and direct sound 50/50" (SRC-001 pp. 11-12), read as equal level on a steady
+    // signal (EV-125). Before the reverbs were levelled, measured 2026-10-07 at 48 kHz: +3.8 to
+    // +7.9 dB.
+    const double sampleRate = GENERATE(44100.0, 48000.0, 88200.0, 96000.0, 192000.0);
+    for (int mode = 1; mode <= 6; ++mode)
+    {
+        auto effects = makeTimeEffects(sampleRate, 2, {.mode = mode, .time = 2, .feedback = 0, .mix = 15});
+        // The same noise on both channels, as from a mono guitar; the first two seconds let the
+        // tail build up.
+        const int length = static_cast<int>(sampleRate * 4.0);
+        PlanarBuffer buffer{2, length};
+        buffer.fillWithNoise(34);
+        buffer.channel(1) = buffer.channel(0);
+        const auto input = buffer.data();
+        effects.process(buffer.view());
+
+        for (int channel = 0; channel < 2; ++channel)
+        {
+            double wet = 0.0;
+            double dry = 0.0;
+            const auto& in = input[static_cast<std::size_t>(channel)];
+            const auto& out = buffer.channel(channel);
+            for (std::size_t n = in.size() / 2; n < in.size(); ++n)
+            {
+                const double difference = static_cast<double>(out[n]) - in[n];
+                wet += difference * difference;
+                dry += static_cast<double>(in[n]) * in[n];
+            }
+            INFO("fs " << sampleRate << ", MODE " << mode << ", channel " << channel);
+            CHECK_THAT(10.0 * std::log10(wet / dry), WithinAbs(0.0, 1.0));
+        }
+    }
+}
+
 TEST_CASE("Echoverb is echoes plus reverb")
 {
     const double sampleRate = 48000.0;

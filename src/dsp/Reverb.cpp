@@ -72,11 +72,42 @@ void Reverb::prepare(double newSampleRate, const ReverbProfile& reverbProfile)
     for (std::size_t i = 0; i < lines.size(); ++i)
         lines[i].buffer.assign(static_cast<std::size_t>(toSamples(lineMs[i] * size, sampleRate) + 1), 0.0f);
 
-    setVoicing(reverbProfile.voicings[0]);
+    voicings = reverbProfile.voicings;
+    for (std::size_t i = 0; i < voicings.size(); ++i)
+        levelGains[i] = static_cast<float>(1.0 / std::sqrt(impulseResponseEnergy(voicings[i])));
+
+    setVoicing(0);
     reset();
 }
 
-void Reverb::setVoicing(const ReverbVoicing& voicing) noexcept
+double Reverb::impulseResponseEnergy(const ReverbVoicing& voicing) noexcept
+{
+    configure(voicing);
+    outputGain = 1.0f;
+    reset();
+
+    // Past the low-frequency T60 less than a millionth of the energy is left: the sum has settled.
+    const auto length =
+        static_cast<long>(sampleRate * (static_cast<double>(voicing.decaySeconds) + 0.001 * voicing.preDelayMs)) + 1;
+    double energy = 0.0;
+    for (long n = 0; n < length; ++n)
+    {
+        float left = 0.0f;
+        float right = 0.0f;
+        processSample(n == 0 ? 1.0f : 0.0f, left, right);
+        energy += 0.5 * (static_cast<double>(left) * left + static_cast<double>(right) * right);
+    }
+    return std::max(energy, 1.0e-12);
+}
+
+void Reverb::setVoicing(std::size_t voicingIndex) noexcept
+{
+    const auto index = std::min(voicingIndex, voicings.size() - 1);
+    configure(voicings[index]);
+    outputGain = levelGains[index];
+}
+
+void Reverb::configure(const ReverbVoicing& voicing) noexcept
 {
     // Safe before prepare(), when the buffers are still empty: settings may arrive first (the plugin
     // passes them before preparing), and std::clamp with an upper bound below its lower one is
@@ -156,8 +187,8 @@ void Reverb::processSample(float input, float& left, float& right) noexcept
     for (std::size_t i = 0; i < lines.size(); ++i)
         lines[i].writeAndAdvance(filtered[i] + x);
 
-    left = 0.5f * sumLeft;
-    right = 0.5f * sumRight;
+    left = outputGain * sumLeft;
+    right = outputGain * sumRight;
 }
 
 } // namespace fivea::dsp
