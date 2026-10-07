@@ -12,7 +12,10 @@ namespace
 const bool reportErrorsToConsole = []
 {
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
-    for (const int type : {_CRT_WARN, _CRT_ERROR, _CRT_ASSERT})
+    // A plain array: a braced list here would need <initializer_list>, which these headers do not
+    // bring in.
+    const int reportTypes[] = {_CRT_WARN, _CRT_ERROR, _CRT_ASSERT};
+    for (const int type : reportTypes)
     {
         _CrtSetReportMode(type, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
         _CrtSetReportFile(type, _CRTDBG_FILE_STDERR);

@@ -200,3 +200,6 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   every test has a 300 s CTest timeout, the slowest test was cut from 10 s to 2 s, and the Linux
   Debug CI job builds with libstdc++ assertions. Engine and plugin tests pass in the hardened
   build.
+- The first push of that fix broke the Windows build: the new Windows-only test file looped over a
+  braced list without including `<initializer_list>`, and no other platform compiles it. Replaced
+  with a plain array.
