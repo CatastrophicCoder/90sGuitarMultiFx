@@ -117,6 +117,9 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   - **Program changes dip the output:** fade out, apply the new program and reset the effects,
     fade in. Tails are cut. How the original sounds during a change is not documented
     (PLACEHOLDER, design choice).
+- 2026-10-07 (after Milestone 2, from the owner's listening test): **drive oversampling 4× by
+  default** (was off; saved sessions keep theirs), and **the drive's output level recalibrated**:
+  at LEVEL 12 a drive program is about as loud as the dry guitar.
 - 2026-10-07 (Milestone 2 step 4): **a new instance loads and plays program 1-1**, as the original
   does at power-on (a copy of METAL 1). A host's "reset to default" still sets the parameter
   defaults, every effect off.
@@ -307,4 +310,22 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 - End-to-end test: a program written on the panel survives saving and reloading the session
   (bank 1, selection, mode, and the panel showing them).
 - Acceptance table above. Milestone 2 done; CI green on all platforms (`b20456b`).
+
+### 2026-10-07: the owner's listening test, in front of an amp sim
+
+- Heard: 2-2 good; most others "a crazy feedback tone". Measured: no program self-oscillates
+  (every tail decays), but every Distortion-mode program aliased at −23 to −30 dB without
+  oversampling (the sharp-cornered placeholder curve behind up to 55 dB of drive), while the
+  Overdrive programs, 2-2 among them, were clean (below −79 dB). The drive programs were also 17 to
+  25 dB louder than the guitar, METAL 1 peaking at 1.8.
+- By decision: 4× oversampling by default, which brings the Distortion programs to −39 to −60 dB
+  (exact, bin-aligned measurement; an earlier windowed estimate of −53 dB for METAL 1 was wrong).
+  METAL 1 (2-1) remains the worst at −39 dB.
+- The drive's output trim now follows DRIVE (a table per mode, measured), so LEVEL 12 is within
+  ±0.2 dB of the dry guitar at a nominal input; every factory program now peaks below 0.7.
+  Pre-gain and trim ramp in dB: ramped as linear gains they swelled mid-ramp, a click on a large
+  DRIVE change that the existing test caught.
+- New tests: drive loudness at every DRIVE step (two rates, with and without oversampling), the
+  Distortion programs' aliasing at 4×, no factory program over full scale. `fillPluck` added to the
+  test signals. Three deliberate breakages each caught.
 

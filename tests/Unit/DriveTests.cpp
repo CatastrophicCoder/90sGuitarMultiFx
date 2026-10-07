@@ -1,6 +1,7 @@
 #include "AllocationGuard.h"
 #include "TestSignals.h"
 
+#include "core/FactoryPrograms.h"
 #include "core/ModelProfile.h"
 #include "core/StepMapping.h"
 #include "dsp/Drive.h"
@@ -148,8 +149,8 @@ TEST_CASE("Output stays bounded however hard the drive is pushed")
 
     // The curves stop at ±1; filters after them may overshoot a little. Then trim and LEVEL 15.
     const auto& profile = mode == 1 ? functionalPlaceholderProfile.distortion : functionalPlaceholderProfile.overdrive;
-    const double ceiling =
-        1.5 * std::pow(10.0, profile.outputTrimDb / 20.0) * mapping::levelGain(15, functionalPlaceholderProfile.level);
+    const double ceiling = 1.5 * std::pow(10.0, mapping::driveOutputTrimDb(15, profile) / 20.0) *
+                           mapping::levelGain(15, functionalPlaceholderProfile.level);
     CHECK(fivea::test::allFinite(buffer));
     CHECK(fivea::test::peak(buffer) < ceiling);
 }
@@ -330,4 +331,96 @@ TEST_CASE("Drive does not allocate while processing or changing settings")
         allocations = counter.count();
     }
     CHECK(allocations == 0);
+}
+
+TEST_CASE("At LEVEL 12 the drive is about as loud as the dry guitar, at every DRIVE step")
+{
+    // The trim follows DRIVE (DriveProfile::outputTrimDbPerDrive), so that in front of an amp the
+    // block behaves like a pedal at unity rather than a +25 dB boost (found 2026-10-07: the first
+    // placeholder trims made the drive programs 17 to 25 dB louder than the guitar).
+    const double sampleRate = GENERATE(44100.0, 96000.0);
+    const int factor = GENERATE(1, 4);
+    for (const int mode : {1, 2})
+        for (int step = 0; step <= 15; ++step)
+        {
+            PlanarBuffer dry{1, static_cast<int>(sampleRate)};
+            fivea::test::fillPluck(dry, sampleRate);
+            auto wet = dry;
+            auto drive = makeDrive(sampleRate, 1, {.mode = mode, .drive = step, .tone = 8, .level = 12}, factor);
+            drive.process(wet.view());
+
+            const int length = dry.getNumSamples();
+            const double differenceDb =
+                20.0 * std::log10(fivea::test::rms(wet, 0, 0, length) / fivea::test::rms(dry, 0, 0, length));
+            INFO(sampleRate << " Hz, " << factor << "x, mode " << mode << ", DRIVE " << step << ": " << differenceDb
+                            << " dB");
+            CHECK(std::abs(differenceDb) < 3.0);
+        }
+}
+
+namespace
+{
+// Aliasing, measured exactly: a sine of `cycles` cycles in one N-sample period, so the settled
+// output repeats every N samples and its DFT needs no window. Every harmonic falls on a multiple of
+// `cycles`; an odd `cycles` and a power-of-two N keep every folded (aliased) harmonic off those
+// bins. Returns the energy off the harmonic bins, relative to all of it, in dB.
+double aliasingDb(Drive& drive, int cycles)
+{
+    constexpr int period = 4096;
+    PlanarBuffer buffer{1, 4 * period};
+    auto& samples = buffer.channel(0);
+    for (std::size_t n = 0; n < samples.size(); ++n)
+        samples[n] = 0.1f * static_cast<float>(
+                                std::sin(2.0 * std::numbers::pi * cycles * static_cast<double>(n % period) / period));
+    drive.process(buffer.view());
+
+    std::vector<double> cosines(period);
+    std::vector<double> sines(period);
+    for (int n = 0; n < period; ++n)
+    {
+        cosines[static_cast<std::size_t>(n)] = std::cos(2.0 * std::numbers::pi * n / period);
+        sines[static_cast<std::size_t>(n)] = std::sin(2.0 * std::numbers::pi * n / period);
+    }
+    const auto* settled = samples.data() + samples.size() - period;
+    double total = 0.0;
+    double harmonic = 0.0;
+    for (int bin = 1; bin < period / 2; ++bin)
+    {
+        double real = 0.0;
+        double imaginary = 0.0;
+        for (int n = 0; n < period; ++n)
+        {
+            const auto phase = static_cast<std::size_t>((static_cast<long long>(bin) * n) % period);
+            real += settled[n] * cosines[phase];
+            imaginary -= settled[n] * sines[phase];
+        }
+        const double power = real * real + imaginary * imaginary;
+        total += power;
+        if (bin % cycles == 0)
+            harmonic += power;
+    }
+    return 10.0 * std::log10((total - harmonic) / total);
+}
+} // namespace
+
+TEST_CASE("Oversampling keeps the Distortion programs' aliasing down")
+{
+    // 113 cycles in 4096 samples: about 1324 Hz at 48 kHz, a high note on the B string. Measured
+    // 2026-10-07 for 2-1, 2-3, 2-5, 6-2, 6-3: −23 to −30 dB without oversampling (heard in front of
+    // an amp sim as a whistling, feedback-like tone), −39 to −60 dB at 4×, the default since then.
+    // METAL 1 (2-1) is the worst at −39.4. Do not loosen the bound without asking.
+    constexpr double aliasingBoundDb = -37.0;
+    const auto slots = fivea::factoryPrograms();
+    for (const int slot : {5, 7, 9, 26, 27})
+    {
+        const auto& program = slots[static_cast<std::size_t>(slot)];
+        REQUIRE(program.drive.mode == 1);
+        auto off = makeDrive(48000.0, 1, program.drive, 1);
+        auto oversampled = makeDrive(48000.0, 1, program.drive, 4);
+        const double withoutDb = aliasingDb(off, 113);
+        const double withDb = aliasingDb(oversampled, 113);
+        INFO(program.name.view() << ": " << withoutDb << " dB off, " << withDb << " dB at 4x");
+        CHECK(withDb < aliasingBoundDb);
+        CHECK(withDb < withoutDb - 10.0);
+    }
 }

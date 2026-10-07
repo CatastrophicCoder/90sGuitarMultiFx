@@ -180,7 +180,7 @@ Implemented in `src/core/StepMapping.cpp` from the values in `src/core/ModelProf
 | Compressor ATTACK 0–7 | 50, 30, 20, 12, 8, 5, 3, 1 ms; release fixed at 250 ms |
 | LEVEL, MASTER 0–15 | 0 = silent; otherwise 2 dB per step, unity at 12 (+6 dB at 15) |
 | DIST/OD MODE 1–2 | **Documented**: 1 Distortion, 2 Overdrive; each its own placeholder pipeline (EV-112); switching crossfades over 20 ms |
-| DIST/OD DRIVE 0–15 | Pre-gain: Overdrive 0 dB + 2 dB/step; Distortion 10 dB + 3 dB/step |
+| DIST/OD DRIVE 0–15 | Pre-gain: Overdrive 0 dB + 2 dB/step; Distortion 10 dB + 3 dB/step. Output trim per step (a table, `DriveProfile::outputTrimDbPerDrive`): Overdrive −5.5 to −25.5 dB, Distortion −13 to −24.5 dB, so that at LEVEL 12 the block is within ±3 dB of the dry guitar at a nominal input (measured within ±0.2 dB). Both gains ramp in dB |
 | DIST/OD TONE 0–15 | Butterworth low-pass cutoff 1–8 kHz, log-spaced |
 | DIST/OD LEVEL 0–15 | As LEVEL above, after a per-mode output trim (Distortion −3 dB) |
 | EQ BASS, MID, TREBLE −7…+7 | 1.5 dB per step (±10.5 dB); BASS low shelf and TREBLE high shelf with slope 1, MID peaking with Q 0.7 (EV-110) |
@@ -219,7 +219,7 @@ as in the manual; their index counts from 0, the documented mode from 1. All at 
 | `revTime`, `revFine` | Rev/Delay TIME, FINE | 0–4, 0–9 (TIME clamped to 3 in Echoverb) | 3, 0 |
 | `revFeedback`, `revMix` | Rev/Delay F.BACK, MIX | 0–15 | 4, 8 |
 | `nrLevel`, `master` | Utility NR LEVEL, MASTER | 0–15 | 0 (off), 12 (unity) |
-| `driveOversampling` | Plugin setting, not automatable | Off, 2x, 4x | Off |
+| `driveOversampling` | Plugin setting, not automatable | Off, 2x, 4x | 4x (Off until 2026-10-07; saved sessions keep their value) |
 
 Defaults are placeholders: the manual documents no "initial" values.
 

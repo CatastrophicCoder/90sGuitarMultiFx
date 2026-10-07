@@ -33,6 +33,7 @@ struct Setup
     Setup()
     {
         REQUIRE(processor.getProgramState().bank.write(allOff, Program{}));
+        setPlain(ParameterIds::driveOversampling, 0.0f); // no latency: these tests compare sample by sample
         processor.setPlayConfigDetails(2, 2, sampleRate, blockSize);
         processor.prepareToPlay(sampleRate, blockSize);
         processor.selectProgram(allOff);

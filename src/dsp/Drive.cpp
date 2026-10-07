@@ -32,9 +32,8 @@ void DriveModel::prepare(double newSampleRate, int numChannels, const DriveProfi
     emphasis.setCoefficients(
         design::peaking(sampleRate, profile.emphasisHz, profile.emphasisQ, profile.emphasisGainDb));
     dcBlocker.setCoefficients(design::highPass(sampleRate, profile.dcBlockerHz, butterworthQ));
-    outputTrim = decibelsToGain(profile.outputTrimDb);
-
-    preGain.prepare(sampleRate, rampSeconds);
+    preGainDb.prepare(sampleRate, rampSeconds);
+    outputTrimDb.prepare(sampleRate, rampSeconds);
     toneLog2Hertz.prepare(sampleRate, rampSeconds);
     setDrive(0);
     setTone(0);
@@ -43,9 +42,11 @@ void DriveModel::prepare(double newSampleRate, int numChannels, const DriveProfi
 
 void DriveModel::reset() noexcept
 {
-    preGain.setCurrentAndTarget(preGain.getTarget());
+    preGainDb.setCurrentAndTarget(preGainDb.getTarget());
+    outputTrimDb.setCurrentAndTarget(outputTrimDb.getTarget());
     toneLog2Hertz.setCurrentAndTarget(toneLog2Hertz.getTarget());
-    currentPreGain = preGain.getCurrent();
+    currentPreGain = decibelsToGain(preGainDb.getCurrent());
+    currentOutputTrim = decibelsToGain(outputTrimDb.getCurrent());
 
     for (auto* filter : {&inputHighPass, &emphasis, &dcBlocker, &toneLowPass})
         filter->reset();
@@ -57,7 +58,13 @@ void DriveModel::reset() noexcept
 
 void DriveModel::setDrive(int step) noexcept
 {
-    preGain.setTarget(decibelsToGain(mapping::drivePreGainDb(step, profile)));
+    preGainDb.setTarget(mapping::drivePreGainDb(step, profile));
+    outputTrimDb.setTarget(mapping::driveOutputTrimDb(step, profile));
+    if (!preGainDb.isSmoothing() && !outputTrimDb.isSmoothing()) // no ramp (or no change): current now
+    {
+        currentPreGain = decibelsToGain(preGainDb.getCurrent());
+        currentOutputTrim = decibelsToGain(outputTrimDb.getCurrent());
+    }
 }
 
 void DriveModel::setTone(int step) noexcept
@@ -68,7 +75,11 @@ void DriveModel::setTone(int step) noexcept
 
 void DriveModel::beginSample() noexcept
 {
-    currentPreGain = preGain.getNextValue();
+    if (preGainDb.isSmoothing() || outputTrimDb.isSmoothing()) // otherwise the gains are already current
+    {
+        currentPreGain = decibelsToGain(preGainDb.getNextValue());
+        currentOutputTrim = decibelsToGain(outputTrimDb.getNextValue());
+    }
 
     // The tone filter is redesigned on a fixed grid while its cutoff ramps, like the EQ, so the
     // output does not depend on block size.
@@ -98,7 +109,7 @@ float DriveModel::processSample(int channel, float input) noexcept
 
     sample = dcBlocker.processSample(channel, sample);
     sample = toneLowPass.processSample(channel, sample);
-    return sample * outputTrim;
+    return sample * currentOutputTrim;
 }
 
 // --- Drive ---------------------------------------------------------------------------------------

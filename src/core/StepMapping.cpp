@@ -79,6 +79,11 @@ float drivePreGainDb(int drive, const DriveProfile& profile) noexcept
     return profile.preGainAtZeroDb + profile.preGainDbPerStep * static_cast<float>(step);
 }
 
+float driveOutputTrimDb(int drive, const DriveProfile& profile) noexcept
+{
+    return profile.outputTrimDbPerDrive[static_cast<std::size_t>(clampStep(drive, documented::zeroToFifteen))];
+}
+
 float driveToneCutoffHz(int tone, const DriveProfile& profile) noexcept
 {
     return geometric(stepFraction(tone), profile.toneMinimumHz, profile.toneMaximumHz);

@@ -176,3 +176,26 @@ TEST_CASE("Every factory program plays through the chain with finite, audible ou
         CHECK(fivea::test::rms(buffer, 0, 12000, 12000) > 1.0e-3);
     }
 }
+
+TEST_CASE("No factory program peaks over full scale at the nominal guitar level")
+{
+    // Measured 2026-10-07, with the drive oversampled 4x (the plugin's default): highest peak 0.68
+    // (4-3), from a pluck peaking at 0.3. Before the drive's output trim followed DRIVE, METAL 1
+    // peaked at 1.8 and 6-1 at 2.6.
+    const auto slots = fivea::factoryPrograms();
+    for (const auto location : allLocations())
+    {
+        fivea::ParameterSnapshot snapshot;
+        fivea::applyProgram(slot(slots, location), snapshot);
+        fivea::FiveAProcessor processor;
+        processor.prepare({48000.0, 512, 2, 4});
+        processor.setParameters(snapshot);
+        processor.reset();
+
+        PlanarBuffer buffer{2, 72000};
+        fivea::test::fillPluck(buffer, 48000.0);
+        processor.process(buffer.view());
+        INFO(location.bank << "-" << location.program << " " << slot(slots, location).name.view());
+        CHECK(fivea::test::peak(buffer) < 1.0f);
+    }
+}

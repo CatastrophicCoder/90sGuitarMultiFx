@@ -59,6 +59,20 @@ void setAllParametersToDefault(PluginProcessor& processor)
         parameter->setValueNotifyingHost(parameter->getDefaultValue());
 }
 
+// Output channel `a` is input channel `b` delayed by `latency` samples, silence before it: the
+// defaults oversample the drive, and the dry path is delayed to match (EV-113).
+bool delayedEqual(const juce::AudioBuffer<float>& output, int channelOut, const juce::AudioBuffer<float>& input,
+                  int channelIn, int latency)
+{
+    for (int sample = 0; sample < output.getNumSamples(); ++sample)
+    {
+        const float expected = sample < latency ? 0.0f : input.getSample(channelIn, sample - latency);
+        if (output.getSample(channelOut, sample) != expected)
+            return false;
+    }
+    return true;
+}
+
 bool channelsEqual(const juce::AudioBuffer<float>& a, int channelA, const juce::AudioBuffer<float>& b, int channelB)
 {
     for (int sample = 0; sample < a.getNumSamples(); ++sample)
@@ -88,8 +102,9 @@ TEST_CASE("Stereo pass-through through the AudioProcessor with every parameter a
 
     processor.processBlock(buffer, midi);
 
-    CHECK(channelsEqual(buffer, 0, input, 0));
-    CHECK(channelsEqual(buffer, 1, input, 1));
+    REQUIRE(processor.getLatencySamples() == 76); // the default, 4x oversampling
+    CHECK(delayedEqual(buffer, 0, input, 0, 76));
+    CHECK(delayedEqual(buffer, 1, input, 1, 76));
 }
 
 TEST_CASE("Mono input feeds both outputs of a stereo layout")
@@ -113,8 +128,9 @@ TEST_CASE("Mono input feeds both outputs of a stereo layout")
 
     processor.processBlock(buffer, midi);
 
-    CHECK(channelsEqual(buffer, 0, input, 0));
-    CHECK(channelsEqual(buffer, 1, input, 0));
+    const int latency = processor.getLatencySamples();
+    CHECK(delayedEqual(buffer, 0, input, 0, latency));
+    CHECK(delayedEqual(buffer, 1, input, 0, latency));
 }
 
 TEST_CASE("Default settings stay bit-transparent after a state reload")
@@ -136,8 +152,9 @@ TEST_CASE("Default settings stay bit-transparent after a state reload")
 
     processor.processBlock(buffer, midi);
 
-    CHECK(channelsEqual(buffer, 0, input, 0));
-    CHECK(channelsEqual(buffer, 1, input, 1));
+    const int latency = processor.getLatencySamples();
+    CHECK(delayedEqual(buffer, 0, input, 0, latency));
+    CHECK(delayedEqual(buffer, 1, input, 1, latency));
 }
 
 TEST_CASE("Supported bus layouts")
@@ -422,6 +439,10 @@ TEST_CASE("Latency follows the oversampling setting, including a change while ru
     processor.setPlayConfigDetails(2, 2, 48000.0, 256);
 
     processor.prepareToPlay(48000.0, 256);
+    CHECK(processor.getLatencySamples() == 76); // the default: 4x
+
+    setPlainValue(processor, ParameterIds::driveOversampling, 0.0f); // off
+    processor.applyOversamplingSetting();
     CHECK(processor.getLatencySamples() == 0);
 
     setPlainValue(processor, ParameterIds::driveOversampling, 2.0f); // 4x

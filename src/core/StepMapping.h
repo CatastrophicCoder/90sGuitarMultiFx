@@ -24,6 +24,7 @@ namespace fivea::mapping
 
 // Distortion/Overdrive
 [[nodiscard]] float drivePreGainDb(int drive, const DriveProfile& profile) noexcept;
+[[nodiscard]] float driveOutputTrimDb(int drive, const DriveProfile& profile) noexcept;
 [[nodiscard]] float driveToneCutoffHz(int tone, const DriveProfile& profile) noexcept;
 
 // 3 Band EQ

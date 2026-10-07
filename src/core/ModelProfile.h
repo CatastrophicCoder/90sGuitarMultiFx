@@ -132,7 +132,11 @@ struct DriveProfile
     float emphasisHz;
     float emphasisGainDb;
     float emphasisQ;
-    float outputTrimDb;
+    // Output trim per DRIVE step 0–15, so that at LEVEL 12 the block is about as loud as the dry
+    // guitar at the nominal input level (a pluck peaking near −10 dBFS, about −27 dB RMS),
+    // measured 2026-10-07. A clipper's output barely follows its input, so the trim has to follow
+    // DRIVE; within ±3 dB of the dry level at every step (DriveTests).
+    std::array<float, 16> outputTrimDbPerDrive;
     float dcBlockerHz = 10.0f; // removes the offset an asymmetric curve creates
 };
 
@@ -226,7 +230,8 @@ struct FiveAModelProfile
                            .emphasisHz = 800.0f,
                            .emphasisGainDb = 6.0f,
                            .emphasisQ = 0.7f,
-                           .outputTrimDb = 0.0f};
+                           .outputTrimDbPerDrive = {-5.5f, -7.5f, -9.5f, -11.5f, -13.0f, -15.0f, -17.0f, -18.5f, -20.0f,
+                                                    -21.0f, -22.5f, -23.5f, -24.0f, -24.5f, -25.0f, -25.5f}};
     DriveProfile distortion{.preGainAtZeroDb = 10.0f,
                             .preGainDbPerStep = 3.0f,
                             .toneMinimumHz = 1000.0f,
@@ -236,7 +241,8 @@ struct FiveAModelProfile
                             .emphasisHz = 1200.0f,
                             .emphasisGainDb = 9.0f,
                             .emphasisQ = 0.7f,
-                            .outputTrimDb = -3.0f};
+                            .outputTrimDbPerDrive = {-13.0f, -15.0f, -17.5f, -19.0f, -20.5f, -22.0f, -23.0f, -23.5f,
+                                                     -23.5f, -24.0f, -24.0f, -24.0f, -24.0f, -24.0f, -24.0f, -24.5f}};
     EqProfile eq;
     LevelProfile level;
     ModulationProfile modulation;

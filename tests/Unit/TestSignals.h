@@ -62,6 +62,30 @@ private:
     std::vector<float*> offsetPointers;
 };
 
+// A plucked open A string (Karplus-Strong, 110 Hz), the same in every channel: the nominal guitar
+// input of the level tests, peaking near −10 dBFS at the default amplitude (about −27 dB RMS over
+// its first 1.5 s), like a DI guitar at a healthy interface level.
+inline void fillPluck(PlanarBuffer& buffer, double sampleRate, float amplitude = 0.3f)
+{
+    const int period = static_cast<int>(sampleRate / 110.0);
+    std::vector<float> string(static_cast<std::size_t>(period));
+    std::mt19937 generator{1};
+    std::uniform_real_distribution<float> distribution{-amplitude, amplitude};
+    for (auto& sample : string)
+        sample = distribution(generator);
+
+    std::vector<float> pluck(buffer.channel(0).size());
+    for (std::size_t n = 0, position = 0; n < pluck.size(); ++n)
+    {
+        const std::size_t next = (position + 1) % string.size();
+        pluck[n] = string[position];
+        string[position] = 0.4985f * (string[position] + string[next]);
+        position = next;
+    }
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+        buffer.channel(channel) = pluck;
+}
+
 inline void fillSine(PlanarBuffer& buffer, double frequency, double sampleRate, float amplitude)
 {
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)

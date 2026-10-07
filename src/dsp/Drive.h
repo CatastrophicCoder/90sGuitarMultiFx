@@ -42,10 +42,13 @@ private:
     Biquad toneLowPass;
     Oversampler oversampler;
 
-    LinearSmoother preGain;       // linear gain
+    // Both gains follow DRIVE and ramp in dB: ramped as linear gains, the rising pre-gain and the
+    // falling trim multiply to a swell mid-ramp (a click on a large DRIVE change).
+    LinearSmoother preGainDb;
     LinearSmoother toneLog2Hertz; // cutoff, ramped on a log axis
+    LinearSmoother outputTrimDb;  // see DriveProfile::outputTrimDbPerDrive
     float currentPreGain = 1.0f;
-    float outputTrim = 1.0f;
+    float currentOutputTrim = 1.0f;
     int samplesUntilUpdate = 0;
     bool toneDirty = true;
 };
