@@ -11,7 +11,7 @@ versus assumed is in `docs/evidence-register.md`.
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
 | 1 Complete functional chain | Done (2026-10-07) | All nine steps done; acceptance below. CI green on all platforms (`d29e268`). Outstanding: listening in a DAW and comparing the panel with the original. |
 | 2 Programs and workflow | Done (2026-10-07) | Acceptance below. CI green on all platforms (`b20456b`). Outstanding: listening to program changes in a DAW. |
-| 3 Hardware-rate mode | In progress | Step 1 of 4 done: the resampler. |
+| 3 Hardware-rate mode | In progress | Steps 1–2 of 4 done: the resampler, the engine wrapper. CI green on step 1 (`025bafc`). |
 | 4 Measurement tooling | Not started | |
 | 5 Measurement-driven calibration | Not started | Needs access to a physical unit. |
 | 6 Release hardening | Not started | Packaging (`.pkg`/`.dmg`) and `CHANGELOG.md` arrive here, as in the other Catastrophic Audio projects. |
@@ -363,3 +363,18 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   three could not change the output (a per-channel write position, now shared; the position after
   a reset; an even filter length).
 - Evidence: EV-126 added.
+
+### 2026-10-08: Milestone 3 step 2, the engine at 44.1 kHz
+
+- `core/HardwareRateProcessor` runs `FiveAProcessor` either at the host rate or at 44.1 kHz
+  between two resamplers. The round trip's delay is padded to a whole number of host samples and
+  reported; it includes the drive's oversampling latency, counted at 44.1 kHz. A 44.1 kHz host,
+  native mode, or a refused ratio runs the engine directly, bit for bit as before.
+- Latency, hardware rate: 145 samples at 48 kHz (3.0 ms) and 227 with 4× drive oversampling
+  (4.7 ms); 289 / 454 at 96 kHz, 577 / 908 at 192 kHz.
+- 11 new tests: identical to the engine when not converting; the output is the input delayed by
+  exactly the reported latency (one sample either way fails) at five rates, mono and stereo, with
+  and without oversampling; delay echoes at 300 ms; block-size independence; blocks longer than
+  announced; 60 seconds without drift; reset; a refused rate; settings before prepare; no
+  allocation. Seven deliberate breakages, all caught.
+- Not yet reachable from the plugin: step 3 adds the parameter.

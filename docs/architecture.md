@@ -49,6 +49,18 @@ All values that concern the original unit live in `src/core/ModelProfile.h` (pla
 `src/core/StepMapping` turns a documented control step into an algorithm value (plan §7.3's middle
 layer), clamping every step to its documented range.
 
+## Hardware-rate mode
+
+`src/core/HardwareRateProcessor` wraps `FiveAProcessor` for plan §6.2's hardware-rate mode: the
+engine runs at the original's documented 44.1 kHz (EV-003) between two `dsp::RationalResampler`s,
+host rate → 44.1 kHz → host rate (EV-126). Both converters share one common rate, so the round
+trip's delay is exact: the up converter's filter is lengthened by up to one host sample's worth to
+make the total, including the engine's own latency, a whole number of host samples. The up
+converter can run a few samples ahead of the host block; those wait in a short queue, which adds
+no latency. At a 44.1 kHz host, in native mode, or at a rate whose ratio the converter refuses, the
+engine runs at the host rate directly. Latency at 48 kHz: 145 samples (3.0 ms), 227 (4.7 ms) with
+the drive oversampled 4×; about the same in milliseconds at every rate.
+
 ## Programs
 
 `src/core/Program.h` and `ProgramBank` (engine side, no JUCE) model the original's program memory:
@@ -72,6 +84,7 @@ layer), clamping every step to its documented range.
 | Call | Thread | Allocation | Notes |
 |------|--------|------------|-------|
 | `FiveAProcessor::prepare` | message / host prepare | yes | Sizes every delay line, reverb network and scratch buffer for the sample rate and block size. |
+| `HardwareRateProcessor::prepare` | message / host prepare | yes | Designs the converters' filters, prepares the engine at 44.1 kHz or the host rate. |
 | `FiveAProcessor::reset` | message / host prepare | none | Clears state, settles every ramp on the current parameters. |
 | `FiveAProcessor::setParameters` | audio | none | Plain struct copy; values sanitised; blocks' settings updated (ramps start only on real changes). |
 | `FiveAProcessor::process` | audio | none | No locks, I/O, logging or construction; tested with a counting `operator new`. |

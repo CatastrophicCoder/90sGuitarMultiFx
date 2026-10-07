@@ -12,6 +12,7 @@ add_executable(fivea_engine_tests
     Unit/DriveTests.cpp
     Unit/FactoryProgramsTests.cpp
     Unit/FiveAProcessorTests.cpp
+    Unit/HardwareRateProcessorTests.cpp
     Unit/ModulationTests.cpp
     Unit/NoiseReductionTests.cpp
     Unit/OversamplerTests.cpp

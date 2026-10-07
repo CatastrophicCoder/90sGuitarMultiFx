@@ -42,6 +42,7 @@ add_subdirectory(external/JUCE)
 add_library(fivea_engine STATIC
     src/core/FactoryPrograms.cpp
     src/core/FiveAProcessor.cpp
+    src/core/HardwareRateProcessor.cpp
     src/core/Program.cpp
     src/core/ProgramBank.cpp
     src/core/ProgramTransition.cpp
