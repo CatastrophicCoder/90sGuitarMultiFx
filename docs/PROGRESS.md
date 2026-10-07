@@ -10,7 +10,7 @@ versus assumed is in `docs/evidence-register.md`.
 |-----------|--------|-------|
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
 | 1 Complete functional chain | Done (2026-10-07) | All nine steps done; acceptance below. CI green on all platforms (`d29e268`). Outstanding: listening in a DAW and comparing the panel with the original. |
-| 2 Programs and workflow | Done (2026-10-07), pending CI | Acceptance below. Outstanding: listening to program changes in a DAW. |
+| 2 Programs and workflow | Done (2026-10-07) | Acceptance below. CI green on all platforms (`b20456b`). Outstanding: listening to program changes in a DAW. |
 | 3 Hardware-rate mode | Not started | |
 | 4 Measurement tooling | Not started | |
 | 5 Measurement-driven calibration | Not started | Needs access to a physical unit. |
@@ -44,7 +44,7 @@ original.
 | State migration framework | `currentSchemaVersion` 2 with a migration step; schema 1 states load with the factory programs; unknown, missing, unreadable and out-of-range values handled per plan §16 | Met |
 | Program change crossfading; no severe clicks | The output dip (owner's decision): click ratio 0.04–8.6 against a bound of 20, into and out of every factory program; no allocation; skipped under bypass | Met |
 | Factory slots clearly identified as development presets | 24 slots named "DEV …"; 2-1 is METAL 1 from the owner's manual, the one documented preset (`FactoryProgramsTests`) | Met |
-| Automated tests pass | 204 tests, macOS Debug, Release and the hardened build; ASan/UBSan engine tests clean; auval, pluginval strictness 10 (VST3, AU) | Met on macOS; CI to confirm after the sign-off push |
+| Automated tests pass | 204 tests, macOS Debug, Release and the hardened build; ASan/UBSan engine tests clean; auval, pluginval strictness 10 (VST3, AU) | Met: CI green on macOS, Windows and Linux, Debug and Release (`b20456b`) |
 
 Outstanding manual checks (the owner's): listening to program changes in a DAW, and comparing the
 Program-mode panel with the original.
@@ -306,5 +306,5 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
 
 - End-to-end test: a program written on the panel survives saving and reloading the session
   (bank 1, selection, mode, and the panel showing them).
-- Acceptance table above. Milestone 2 done, pending CI.
+- Acceptance table above. Milestone 2 done; CI green on all platforms (`b20456b`).
 
