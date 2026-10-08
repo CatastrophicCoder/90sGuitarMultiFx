@@ -11,7 +11,7 @@ versus assumed is in `docs/evidence-register.md`.
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
 | 1 Complete functional chain | Done (2026-10-07) | All nine steps done; acceptance below. CI green on all platforms (`d29e268`). Outstanding: listening in a DAW and comparing the panel with the original. |
 | 2 Programs and workflow | Done (2026-10-07) | Acceptance below. CI green on all platforms (`b20456b`). Outstanding: listening to program changes in a DAW. |
-| 3 Hardware-rate mode | In progress | Steps 1–2 of 4 done: the resampler, the engine wrapper. CI green on step 1 (`025bafc`). |
+| 3 Hardware-rate mode | In progress | Steps 1–3 of 4 done: the resampler, the engine wrapper, the Processing Rate setting. |
 | 4 Measurement tooling | Not started | |
 | 5 Measurement-driven calibration | Not started | Needs access to a physical unit. |
 | 6 Release hardening | Not started | Packaging (`.pkg`/`.dmg`) and `CHANGELOG.md` arrive here, as in the other Catastrophic Audio projects. |
@@ -378,3 +378,18 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   announced; 60 seconds without drift; reset; a refused rate; settings before prepare; no
   allocation. Seven deliberate breakages, all caught.
 - Not yet reachable from the plugin: step 3 adds the parameter.
+
+### 2026-10-08: Milestone 3 step 3, the Processing Rate setting
+
+- New host parameter `processingRate` (Host rate / 44.1 kHz), not automatable, host rate by
+  default; not on the panel, like Drive Oversampling. A change re-prepares the engine and reports
+  the new latency through the same timer path, now `applyLatencySettings` (was
+  `applyOversamplingSetting`). Sessions saved before it existed load at the host rate.
+- The plugin's engine is now `HardwareRateProcessor`; at the host rate nothing changes.
+- New tests: the parameter; latency in both modes and on a change while running (48 kHz: 227
+  samples with 4× oversampling, 145 without; 76 at a 44.1 kHz host); `processBlock` output delayed
+  by exactly the reported latency at 96 kHz; the state round trip; an older session; program
+  changes at the hardware rate (worst click ratio 2.9, bound 20; 3.1 at the host rate). Five
+  deliberate breakages, all caught.
+- pluginval (strictness 10, AU and VST3) also passed on a temporary build defaulting to 44.1 kHz,
+  so its threading and state tests ran through the converters.

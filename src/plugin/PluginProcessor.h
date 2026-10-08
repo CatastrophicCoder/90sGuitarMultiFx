@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/FiveAProcessor.h"
+#include "core/HardwareRateProcessor.h"
 #include "core/ParameterSnapshot.h"
 #include "core/ProgramState.h"
 #include "core/ProgramTransition.h"
@@ -14,7 +14,8 @@ namespace fivea
 {
 
 // Host-facing adapter: owns the parameters and state, and feeds the engine an allocation-free
-// parameter snapshot each block. All signal processing lives in FiveAProcessor.
+// parameter snapshot each block. All signal processing lives in FiveAProcessor, run at the host
+// rate or at 44.1 kHz by HardwareRateProcessor.
 class PluginProcessor final : public juce::AudioProcessor, private juce::Timer
 {
 public:
@@ -75,9 +76,10 @@ public:
     // The parameters as the engine receives them; for tests and the editor.
     [[nodiscard]] ParameterSnapshot readParameterSnapshot() const noexcept;
 
-    // Message thread: re-prepares the engine if the oversampling setting changed since the last
-    // prepare, and reports the new latency. Called by a timer; public so tests can call it.
-    void applyOversamplingSetting();
+    // Message thread: re-prepares the engine if the oversampling or processing-rate setting
+    // changed since the last prepare, and reports the new latency. Called by a timer; public so
+    // tests can call it.
+    void applyLatencySettings();
 
     // The input peak since the last call, after the input trim: the PEAK LED's source. Written by
     // the audio thread, taken (and cleared) by the editor's timer.
@@ -88,8 +90,9 @@ public:
     std::atomic<int> selectedRow{1};
 
 private:
-    void timerCallback() override { applyOversamplingSetting(); }
+    void timerCallback() override { applyLatencySettings(); }
     [[nodiscard]] int requestedOversampling() const noexcept;
+    [[nodiscard]] bool requestedHardwareRate() const noexcept;
     [[nodiscard]] static int readStep(const std::atomic<float>* value) noexcept;
     void loadIntoParameters(const Program& program);
 
@@ -128,12 +131,14 @@ private:
         std::atomic<float>* master = nullptr;
     } controls;
     std::atomic<float>* driveOversampling = nullptr;
+    std::atomic<float>* processingRate = nullptr;
 
-    FiveAProcessor engine;
+    HardwareRateProcessor engine;
     std::atomic<float> inputPeak{0.0f};
     double preparedSampleRate = 0.0;
     int preparedBlockSize = 0;
     int preparedOversampling = 1;
+    bool preparedAtHardwareRate = false;
     int lastLoadedSchemaVersion = 0;
     ProgramState programState;
 

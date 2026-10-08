@@ -57,6 +57,10 @@ inline constexpr const char* master = "master";
 // automatable, since changing it changes the latency.
 inline constexpr const char* driveOversampling = "driveOversampling";
 
+// Plugin setting: the engine at the host rate, or at the original's 44.1 kHz behind rate converters
+// (plan §6.2, EV-126). Not automatable, for the same reason.
+inline constexpr const char* processingRate = "processingRate";
+
 // Passed to juce::ParameterID. Audio Units order parameters by it; a parameter added in a later
 // release takes that release's number so existing Logic sessions keep their mapping.
 inline constexpr int firstVersionHint = 1;

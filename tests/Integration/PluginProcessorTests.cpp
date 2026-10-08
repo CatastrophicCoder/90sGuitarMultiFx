@@ -357,6 +357,11 @@ TEST_CASE("Every documented control is a host parameter with its documented rang
     CHECK(state.getParameter(ParameterIds::equaliserMidFrequency)
               ->getText(state.getParameter(ParameterIds::equaliserMidFrequency)->convertTo0to1(3.0f), 20) == "800 Hz");
     CHECK_FALSE(state.getParameter(ParameterIds::driveOversampling)->isAutomatable());
+
+    // Plan §6.2: the engine at the host rate by default, or at the original's 44.1 kHz.
+    CHECK(choices(ParameterIds::processingRate) == juce::StringArray{"Host rate", "44.1 kHz"});
+    CHECK(state.getParameter(ParameterIds::processingRate)->getDefaultValue() == 0.0f);
+    CHECK_FALSE(state.getParameter(ParameterIds::processingRate)->isAutomatable());
 }
 
 TEST_CASE("Host parameters reach the engine as the documented steps")
@@ -409,6 +414,7 @@ TEST_CASE("State round trip restores every documented control")
     setPlainValue(source, timeEffectMode, 3.0f);
     setPlainValue(source, timeEffectMix, 5.0f);
     setPlainValue(source, driveOversampling, 2.0f);
+    setPlainValue(source, processingRate, 1.0f);
 
     const auto block = saveState(source);
     PluginProcessor restored;
@@ -429,6 +435,7 @@ TEST_CASE("State round trip restores every documented control")
     CHECK(b.timeEffects.mode == a.timeEffects.mode);
     CHECK(b.timeEffects.mix == a.timeEffects.mix);
     CHECK(plainValue(restored, driveOversampling) == 2.0f);
+    CHECK(plainValue(restored, processingRate) == 1.0f);
     CHECK(saveState(restored) == block);
 }
 
@@ -442,16 +449,113 @@ TEST_CASE("Latency follows the oversampling setting, including a change while ru
     CHECK(processor.getLatencySamples() == 76); // the default: 4x
 
     setPlainValue(processor, ParameterIds::driveOversampling, 0.0f); // off
-    processor.applyOversamplingSetting();
+    processor.applyLatencySettings();
     CHECK(processor.getLatencySamples() == 0);
 
     setPlainValue(processor, ParameterIds::driveOversampling, 2.0f); // 4x
-    processor.applyOversamplingSetting();
+    processor.applyLatencySettings();
     CHECK(processor.getLatencySamples() == 76);
 
     setPlainValue(processor, ParameterIds::driveOversampling, 1.0f); // 2x
     processor.prepareToPlay(48000.0, 256);
     CHECK(processor.getLatencySamples() == 69);
+}
+
+TEST_CASE("Latency follows the processing rate, including a change while running")
+{
+    FIVEA_JUCE_TEST_SETUP;
+    PluginProcessor processor;
+    processor.setPlayConfigDetails(2, 2, 48000.0, 256);
+    processor.prepareToPlay(48000.0, 256);
+    CHECK(processor.getLatencySamples() == 76); // the default: host rate, drive oversampled 4x
+
+    // Measured 2026-10-08 (HardwareRateProcessor): 227 samples at 48 kHz with 4x, 145 without.
+    setPlainValue(processor, ParameterIds::processingRate, 1.0f);
+    processor.applyLatencySettings();
+    CHECK(processor.getLatencySamples() == 227);
+
+    setPlainValue(processor, ParameterIds::driveOversampling, 0.0f);
+    processor.applyLatencySettings();
+    CHECK(processor.getLatencySamples() == 145);
+
+    setPlainValue(processor, ParameterIds::processingRate, 0.0f);
+    processor.applyLatencySettings();
+    CHECK(processor.getLatencySamples() == 0);
+
+    // At a 44.1 kHz host there is nothing to convert.
+    setPlainValue(processor, ParameterIds::processingRate, 1.0f);
+    setPlainValue(processor, ParameterIds::driveOversampling, 2.0f);
+    processor.setPlayConfigDetails(2, 2, 44100.0, 256);
+    processor.prepareToPlay(44100.0, 256);
+    CHECK(processor.getLatencySamples() == 76);
+}
+
+TEST_CASE("At the hardware rate, processBlock delays the signal by exactly the reported latency")
+{
+    FIVEA_JUCE_TEST_SETUP;
+    PluginProcessor processor;
+    setAllParametersToDefault(processor);
+    setPlainValue(processor, ParameterIds::processingRate, 1.0f);
+    processor.setPlayConfigDetails(2, 2, 96000.0, 480);
+    processor.prepareToPlay(96000.0, 480);
+    const int latency = processor.getLatencySamples();
+    REQUIRE(latency > 0);
+
+    // Different tones on the two channels, inside the band the conversion keeps.
+    const int length = 48000;
+    juce::AudioBuffer<float> input{2, length};
+    for (int n = 0; n < length; ++n)
+    {
+        const double t = n / 96000.0;
+        input.setSample(0, n, static_cast<float>(0.3 * std::sin(2.0 * juce::MathConstants<double>::pi * 997.0 * t)));
+        input.setSample(1, n, static_cast<float>(0.3 * std::sin(2.0 * juce::MathConstants<double>::pi * 5003.0 * t)));
+    }
+    juce::AudioBuffer<float> output{input};
+    juce::MidiBuffer midi;
+    for (int start = 0; start < length; start += 480)
+    {
+        juce::AudioBuffer<float> block{output.getArrayOfWritePointers(), 2, start, 480};
+        processor.processBlock(block, midi);
+    }
+
+    for (int channel = 0; channel < 2; ++channel)
+    {
+        double error = 0.0;
+        double reference = 0.0;
+        for (int n = latency + 960; n < length; ++n)
+        {
+            const double expected = input.getSample(channel, n - latency);
+            error += std::pow(output.getSample(channel, n) - expected, 2.0);
+            reference += expected * expected;
+        }
+        INFO("channel " << channel << ", latency " << latency);
+        CHECK(10.0 * std::log10(error / reference) < -90.0);
+    }
+}
+
+TEST_CASE("A session saved before the processing rate existed loads at the host rate")
+{
+    FIVEA_JUCE_TEST_SETUP;
+    PluginProcessor source;
+    setPlainValue(source, ParameterIds::processingRate, 1.0f);
+    const auto saved = saveState(source);
+    auto xml = juce::AudioProcessor::getXmlFromBinary(saved.getData(), static_cast<int>(saved.getSize()));
+    REQUIRE(xml != nullptr);
+    auto* parameters = xml->getChildByName("Parameters");
+    REQUIRE(parameters != nullptr);
+    juce::XmlElement* rate = nullptr;
+    for (auto* element : parameters->getChildIterator())
+        if (element->getStringAttribute("id") == ParameterIds::processingRate)
+            rate = element;
+    REQUIRE(rate != nullptr);
+    parameters->removeChildElement(rate, true);
+
+    juce::MemoryBlock older;
+    juce::AudioProcessor::copyXmlToBinary(*xml, older);
+    PluginProcessor restored;
+    setPlainValue(restored, ParameterIds::processingRate, 1.0f);
+    restored.setStateInformation(older.getData(), static_cast<int>(older.getSize()));
+    CHECK(plainValue(restored, ParameterIds::processingRate) == 0.0f);
 }
 
 TEST_CASE("Every effect on, through processBlock: finite, and a mono guitar comes out stereo")

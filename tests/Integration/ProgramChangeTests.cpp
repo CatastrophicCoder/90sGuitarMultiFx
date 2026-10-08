@@ -30,10 +30,11 @@ struct Setup
     juce::ScopedJuceInitialiser_GUI juce;
     PluginProcessor processor;
 
-    Setup()
+    explicit Setup(bool atHardwareRate = false)
     {
         REQUIRE(processor.getProgramState().bank.write(allOff, Program{}));
         setPlain(ParameterIds::driveOversampling, 0.0f); // no latency: these tests compare sample by sample
+        setPlain(ParameterIds::processingRate, atHardwareRate ? 1.0f : 0.0f);
         processor.setPlayConfigDetails(2, 2, sampleRate, blockSize);
         processor.prepareToPlay(sampleRate, blockSize);
         processor.selectProgram(allOff);
@@ -105,9 +106,9 @@ double largestSecondDifference(const juce::AudioBuffer<float>& buffer, int from,
 
 // As in Milestone 1's switching tests: a 43 Hz sine, changed at a sine peak; the largest second
 // difference across the change against the larger of the two settled states'.
-double programChangeClickRatio(ProgramLocation from, ProgramLocation to)
+double programChangeClickRatio(ProgramLocation from, ProgramLocation to, bool atHardwareRate = false)
 {
-    Setup setup;
+    Setup setup{atHardwareRate};
     setup.processor.selectProgram(from);
     setup.processor.reset();
 
@@ -281,6 +282,19 @@ TEST_CASE("Program changes do not click")
         INFO(location.bank << "-" << location.program);
         CHECK(programChangeClickRatio(allOff, location) < programChangeClickBound);
         CHECK(programChangeClickRatio(location, allOff) < programChangeClickBound);
+    }
+}
+
+TEST_CASE("Program changes do not click at the hardware rate")
+{
+    // The dip runs at the host rate, around the converters; the same bound as at the host rate.
+    constexpr double programChangeClickBound = 20.0;
+    for (int slot = 5; slot < fivea::numProgramSlots; ++slot)
+    {
+        const ProgramLocation location{slot / 5 + 1, slot % 5 + 1};
+        INFO(location.bank << "-" << location.program);
+        CHECK(programChangeClickRatio(allOff, location, true) < programChangeClickBound);
+        CHECK(programChangeClickRatio(location, allOff, true) < programChangeClickBound);
     }
 }
 

@@ -101,7 +101,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         makeStepParameter(noiseReductionLevel, "NR LEVEL", 0, 15, 0), makeStepParameter(master, "MASTER", 0, 15, 12),
         std::make_unique<juce::AudioParameterChoice>(
             juce::ParameterID{driveOversampling, ParameterIds::firstVersionHint}, "Drive Oversampling",
-            juce::StringArray{"Off", "2x", "4x"}, 2, juce::AudioParameterChoiceAttributes{}.withAutomatable(false)));
+            juce::StringArray{"Off", "2x", "4x"}, 2, juce::AudioParameterChoiceAttributes{}.withAutomatable(false)),
+        std::make_unique<juce::AudioParameterChoice>(juce::ParameterID{processingRate, ParameterIds::firstVersionHint},
+                                                     "Processing Rate", juce::StringArray{"Host rate", "44.1 kHz"}, 0,
+                                                     juce::AudioParameterChoiceAttributes{}.withAutomatable(false)));
 
     return layout;
 }

@@ -90,7 +90,7 @@ the drive oversampled 4×; about the same in milliseconds at every rate.
 | `FiveAProcessor::process` | audio | none | No locks, I/O, logging or construction; tested with a counting `operator new`. |
 | `PluginProcessor::processBlock` | audio | none | Reads parameters from APVTS atomics into a snapshot; records the input peak (atomic). |
 | `get/setStateInformation` | message | yes | Touches parameters only; the audio thread sees them through the atomics. |
-| `applyOversamplingSetting` | message (timer) | yes | Re-prepares with processing suspended, reports the new latency. |
+| `applyLatencySettings` | message (timer) | yes | On a Drive Oversampling or Processing Rate change: re-prepares with processing suspended, reports the new latency. |
 | `selectProgram`, `writeProgram`, host program calls | message | yes | Load a program into the parameters between `ProgramTransition::post()` and `complete()`; the audio thread fades out, waits for `complete()`, switches. |
 | Editor | message | yes | Reads parameters through attachments and atomics; the input peak through an atomic exchange. |
 
@@ -113,6 +113,9 @@ independent of the JUCE wrapper's own.
   Under global bypass nothing is faded or reset.
 - Oversampling the drive adds 69 (2×) or 76 (4×) samples. The drive's bypass path and the global
   bypass path are delayed to match, so the reported latency is constant.
+- At the 44.1 kHz processing rate the converters add about 3 ms, and the drive's latency is
+  counted at 44.1 kHz (see Hardware-rate mode). The program-change dip runs at the host rate,
+  around the converters.
 - The engine processes in chunks of its announced block size, so longer host blocks are safe.
 
 ## Signal handling at the boundary
@@ -195,7 +198,7 @@ footswitches 1–5 select programs; WRITE runs on the panel and stores through
 | §8.1: `DetectorType` Peak/MeanSquare/QuasiRms; §11.1: four interpolations | Peak only; Linear and Cubic only | The others are added if a measurement calls for them |
 | §15: a `TailPolicy` enum | Crossfade behaviour only | The plan's default; the others wait for evidence of what the original does |
 | §3.3: L/Mono as a separate routing mode; §7.2: authenticity mode | Not yet | Not in Milestone 1's deliverables |
-| §6.2: hardware-rate mode | Not yet | Milestone 3 |
+| §6.2: hardware-rate mode | `HardwareRateProcessor` around the engine, chosen by the Processing Rate setting | Milestone 3 |
 | §13: `FixedPointProfile` | Not created | Disabled until evidence supports a configuration |
 | §17.2: no copied trade dress | A close replica of the panel, without the original's names, logo or artwork | Owner's decision, plan §17.2 amended |
 | §5 file layout: added | `AudioBufferView.h`, `ParameterSnapshot.h`, `ParameterLayout.h`, `ModelProfile.h`, `StepMapping`, `Program`, `ProgramBank`, `ProgramMode.h`, `FactoryPrograms`, `BypassCrossfade.h`, `DenormalGuard.h`, `Biquad`, `Oversampler`, `Waveshapers.h`, `Reverb`, `NoiseReduction`; the panel's `PanelLayout.h`, `PanelLookAndFeel`, `PanelControls`, `SevenSegmentDisplay`; `docs/source-register.md`, `panel-specification.md` | Pieces the plan's sections or the evidence rules need |

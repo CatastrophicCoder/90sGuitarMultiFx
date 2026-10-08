@@ -220,6 +220,7 @@ as in the manual; their index counts from 0, the documented mode from 1. All at 
 | `revFeedback`, `revMix` | Rev/Delay F.BACK, MIX | 0–15 | 4, 8 |
 | `nrLevel`, `master` | Utility NR LEVEL, MASTER | 0–15 | 0 (off), 12 (unity) |
 | `driveOversampling` | Plugin setting, not automatable | Off, 2x, 4x | 4x (Off until 2026-10-07; saved sessions keep their value) |
+| `processingRate` | Plugin setting, not automatable: the engine at the host rate, or at 44.1 kHz behind rate converters (plan §6.2, EV-126) | Host rate, 44.1 kHz | Host rate (sessions saved before it existed load at the host rate) |
 
 Defaults are placeholders: the manual documents no "initial" values.
 

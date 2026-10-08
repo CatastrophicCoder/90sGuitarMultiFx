@@ -38,6 +38,7 @@ PluginProcessor::PluginProcessor()
                 raw(timeEffectTime),     raw(timeEffectFine),      raw(timeEffectFeedback),
                 raw(timeEffectMix),      raw(noiseReductionLevel), raw(master)};
     driveOversampling = raw(ParameterIds::driveOversampling);
+    processingRate = raw(ParameterIds::processingRate);
 
     // Like the original at power-on (EV-029), a new instance plays the selected program, 1-1.
     // Nothing is processing yet, so no dip is needed. A host restoring a session overrides it.
@@ -57,9 +58,15 @@ int PluginProcessor::requestedOversampling() const noexcept
     return factors[std::clamp(readStep(driveOversampling), 0, 2)];
 }
 
-void PluginProcessor::applyOversamplingSetting()
+bool PluginProcessor::requestedHardwareRate() const noexcept
 {
-    if (preparedSampleRate <= 0.0 || requestedOversampling() == preparedOversampling)
+    return readStep(processingRate) == 1; // choices Host rate, 44.1 kHz
+}
+
+void PluginProcessor::applyLatencySettings()
+{
+    if (preparedSampleRate <= 0.0 ||
+        (requestedOversampling() == preparedOversampling && requestedHardwareRate() == preparedAtHardwareRate))
         return;
 
     // Allocates, so not on the audio thread; processing is held off while it happens.
@@ -91,9 +98,11 @@ void PluginProcessor::prepareToPlay(double sampleRate, int maximumExpectedSample
     preparedSampleRate = sampleRate;
     preparedBlockSize = maximumExpectedSamplesPerBlock;
     preparedOversampling = requestedOversampling();
+    preparedAtHardwareRate = requestedHardwareRate();
 
     engine.setParameters(readParameterSnapshot());
-    engine.prepare({sampleRate, maximumExpectedSamplesPerBlock, getTotalNumOutputChannels(), preparedOversampling});
+    engine.prepare({sampleRate, maximumExpectedSamplesPerBlock, getTotalNumOutputChannels(), preparedOversampling},
+                   preparedAtHardwareRate);
     engine.setParameters(readParameterSnapshot());
     engine.reset();
     lastApplied = readParameterSnapshot();
