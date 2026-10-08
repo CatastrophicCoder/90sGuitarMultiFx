@@ -24,10 +24,11 @@ Read these at the start of every session:
 - `docs/evidence-register.md`: what is known about the original unit versus assumed.
 - `docs/architecture.md`: how the code is put together, and where it differs from the plan's layout.
 
-**Current state:** Milestones 1 and 2 are done (see `docs/PROGRESS.md` for their acceptance and
+**Current state:** Milestones 1 to 3 are done (see `docs/PROGRESS.md` for their acceptance and
 what carries over): the full chain, every documented control, the replica panel in both modes, 30
-program slots (METAL 1 and development presets), Program Write, and click-free program changes.
-Next is Milestone 3, hardware-rate mode.
+program slots (METAL 1 and development presets), Program Write, click-free program changes, and
+the Processing Rate setting (host rate, or 44.1 kHz behind our own resampler).
+Next is Milestone 4, measurement tooling.
 
 ## How to work in this repo
 

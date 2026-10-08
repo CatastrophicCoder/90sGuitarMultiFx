@@ -1,8 +1,8 @@
 # Architecture
 
-State at the end of **Milestone 2**: the plugin (VST3, and AU on macOS) runs the original unit's
+State at the end of **Milestone 3**: the plugin (VST3, and AU on macOS) runs the original unit's
 full effect chain, with every documented control as a host parameter, its 30-slot program memory
-and a replica of its front panel in both modes. Every algorithm is a placeholder: the controls and documented values
+and a replica of its front panel in both modes, at the host rate or at 44.1 kHz. Every algorithm is a placeholder: the controls and documented values
 match the original; the sound does not claim to.
 
 ## Layers

@@ -11,7 +11,7 @@ versus assumed is in `docs/evidence-register.md`.
 | 0 Evidence and skeleton | Done (2026-10-05) | Pass-through plugin, versioned state, evidence register. CI green on macOS, Windows and Linux (`ec6afd2`). Outstanding: listen to it once in a DAW, in front of an amp sim. |
 | 1 Complete functional chain | Done (2026-10-07) | All nine steps done; acceptance below. CI green on all platforms (`d29e268`). Outstanding: listening in a DAW and comparing the panel with the original. |
 | 2 Programs and workflow | Done (2026-10-07) | Acceptance below. CI green on all platforms (`b20456b`). Outstanding: listening to program changes in a DAW. |
-| 3 Hardware-rate mode | In progress | Steps 1–3 of 4 done: the resampler, the engine wrapper, the Processing Rate setting. |
+| 3 Hardware-rate mode | Done (2026-10-08) | Acceptance below. Outstanding: listening in the 44.1 kHz mode in a DAW. |
 | 4 Measurement tooling | Not started | |
 | 5 Measurement-driven calibration | Not started | Needs access to a physical unit. |
 | 6 Release hardening | Not started | Packaging (`.pkg`/`.dmg`) and `CHANGELOG.md` arrive here, as in the other Catastrophic Audio projects. |
@@ -49,13 +49,28 @@ original.
 Outstanding manual checks (the owner's): listening to program changes in a DAW, and comparing the
 Program-mode panel with the original.
 
-## Carried over to Milestone 3 and later
+## Milestone 3 acceptance (plan §21)
+
+| Criterion | Evidence | Result |
+|-----------|----------|--------|
+| Internal 44.1 kHz processing option | The Processing Rate setting (Host rate by default, owner's decision; 44.1 kHz), not automatable; `HardwareRateProcessor` runs the engine at 44.1 kHz between two resamplers; sessions saved before it load at the host rate (`PluginProcessorTests`) | Met |
+| Host-rate conversion | `RationalResampler`, our own (owner's decision): exact whole-number ratios, flat to 20 kHz (−0.007 dB there, error below −105 dB up to 19 kHz), at least 100 dB of rejection from 22.05 kHz (102.9 dB worst), linear phase (`RationalResamplerTests`) | Met |
+| Works at common host sample rates | 48, 88.2, 96, 176.4 and 192 kHz converted, each way; a 44.1 kHz host runs the engine directly, bit for bit as at the host rate; a rate too fine to tabulate falls back to the host rate; delay times kept (a 300 ms echo at 300 ms) | Met |
+| No drift in long renders | Positions counted in whole numbers; output counts exact block after block over 30 s with random blocks; ten minutes at 48 kHz and a minute at 88.2, 96, 176.4 and 192 kHz still aligned to the input at the reported latency (−116 to −123 dB); a planted drift of one sample in four million fails it | Met |
+| Channel alignment preserved | Different signals on left and right: each channel equals its own mono conversion, and each lines up with its input at the same latency, through the engine wrapper and `processBlock` | Met |
+| Latency reported correctly | The output is the input delayed by exactly the reported latency (one sample either way fails), at five rates, mono and stereo, with and without drive oversampling; through `processBlock` at 96 kHz; a change while running re-prepares and reports the new latency. 48 kHz: 145 samples (3.0 ms), 227 (4.7 ms) with 4× oversampling | Met |
+| Sample-rate tests | Every resampler and wrapper test at the rates above; program changes at the hardware rate click no more than at the host rate (worst ratio 2.9, bound 20) | Met |
+| Automated tests pass | 235 tests, macOS Debug, Release and the hardened build; ASan/UBSan engine tests clean; auval, pluginval strictness 10 (VST3, AU), also on a build defaulting to 44.1 kHz | Met locally; CI pending |
+
+Outstanding manual check (the owner's): listening in the 44.1 kHz mode in a DAW at 48 or 96 kHz.
+
+## Carried over to Milestone 4 and later
 
 - The volume pedal input (EV-016), left out of Milestones 1–2 by decision.
 - The original's 24 other factory presets and METAL 1's Utility values, if the Effect Parameter
   List is found (EV-010, EV-120).
 - L/Mono routing mode (plan §3.3) and authenticity mode (plan §7.2).
-- Hardware-rate mode (Milestone 3); measurement tooling (Milestone 4); golden renders (4–5).
+- Measurement tooling (Milestone 4); golden renders (4–5).
 - CI: static analysis; the GitHub actions still target the deprecated Node.js 20.
 
 ## Decisions
@@ -393,3 +408,10 @@ Owner's decisions, with dates. Engineering decisions made while implementing are
   deliberate breakages, all caught.
 - pluginval (strictness 10, AU and VST3) also passed on a temporary build defaulting to 44.1 kHz,
   so its threading and state tests ran through the converters.
+
+### 2026-10-08: Milestone 3 sign-off
+
+- The drift test now renders ten minutes at 48 kHz and a minute at 88.2, 96, 176.4 and 192 kHz,
+  generating its input block by block (42 s in a Debug build); all line up to −116 dB or better.
+  A planted drift (one output sample skipped in four million) fails it.
+- Acceptance table above. Milestone 3 done.

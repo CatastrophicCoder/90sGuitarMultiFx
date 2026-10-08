@@ -3,14 +3,16 @@
 A guitar multi-effect plugin whose architecture and workflow are modelled on an early-1990s
 guitar multi-effect floor unit, referred to here as "the original unit".
 
-**Status: Milestone 2 done.** VST3 and (on macOS) Audio Unit plugins with the original
+**Status: Milestone 3 done.** VST3 and (on macOS) Audio Unit plugins with the original
 unit's five-effect chain (compressor, distortion/overdrive, 3-band EQ, chorus/flanger,
 reverb/delay), noise reduction and master volume, each control with its original steps. 30
 programs in six banks: bank 1 is yours to write; banks 2–6 hold development presets ("DEV …")
 and the one factory program the original's manual documents. **Every algorithm is a
 placeholder:** the controls and their documented values match the original, the sound does not
 claim to. The editor is a replica of the original's front panel, in both its Program and
-Manual/Edit modes. See `docs/implementation-plan.md` for the
+Manual/Edit modes. A Processing Rate setting runs the effects at the host's rate or at the
+original's 44.1 kHz (the same rate, not a model of its converters). See
+`docs/implementation-plan.md` for the
 roadmap and `docs/evidence-register.md` for what is known versus assumed.
 
 ## Requirements

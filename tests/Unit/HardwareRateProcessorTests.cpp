@@ -8,6 +8,7 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <numbers>
 #include <random>
@@ -222,23 +223,58 @@ TEST_CASE("At the hardware rate, blocks longer than announced are processed whol
 
 TEST_CASE("At the hardware rate, nothing drifts over a long render")
 {
-    // Sixty seconds; the last second must still line up with the input at the reported latency.
-    const double sampleRate = 48000.0;
-    auto processor = makeProcessor(sampleRate, 2, true, 4);
+    // Ten minutes at 48 kHz, a minute at the other rates (Debug builds run these too). The input is
+    // generated block by block, so nothing long is held in memory; the last second must still
+    // line up with the input at the reported latency.
+    struct Render
+    {
+        double sampleRate;
+        double seconds;
+    };
+    const auto render = GENERATE(Render{48000.0, 600.0}, Render{88200.0, 60.0}, Render{96000.0, 60.0},
+                                 Render{176400.0, 60.0}, Render{192000.0, 60.0});
+    auto processor = makeProcessor(render.sampleRate, 2, true, 4);
     const int latency = processor.getLatencySamples();
 
-    const int length = static_cast<int>(sampleRate * 60.0);
-    PlanarBuffer buffer{2, length};
-    fillTones(buffer, sampleRate);
-    const auto input = buffer.data();
-    processInBlocks(processor, buffer, {480, 512, 1024, 37});
-
-    for (int channel = 0; channel < 2; ++channel)
+    auto tone = [&](int channel, long long n)
     {
-        INFO("channel " << channel);
-        CHECK(alignedErrorDb(buffer.data()[static_cast<std::size_t>(channel)], input[static_cast<std::size_t>(channel)],
-                             latency, static_cast<std::size_t>(length) - 48000,
-                             static_cast<std::size_t>(length)) < -90.0);
+        const double t = static_cast<double>(n) / render.sampleRate;
+        const double first = channel == 0 ? 997.0 : 1499.0;
+        const double second = channel == 0 ? 7001.0 : 11003.0;
+        return 0.3 * std::sin(2.0 * std::numbers::pi * first * t) + 0.2 * std::sin(2.0 * std::numbers::pi * second * t);
+    };
+
+    const auto length = static_cast<long long>(render.sampleRate * render.seconds);
+    const auto checkedFrom = length - static_cast<long long>(render.sampleRate);
+    const std::vector<int> blockLengths{480, 512, 1024, 37};
+    PlanarBuffer block{2, 1024};
+    std::array<double, 2> error{};
+    std::array<double, 2> reference{};
+    for (long long start = 0, index = 0; start < length; ++index)
+    {
+        const int count = static_cast<int>(
+            std::min<long long>(length - start, blockLengths[static_cast<std::size_t>(index) % blockLengths.size()]));
+        for (int channel = 0; channel < 2; ++channel)
+            for (int n = 0; n < count; ++n)
+                block.channel(channel)[static_cast<std::size_t>(n)] = static_cast<float>(tone(channel, start + n));
+        processor.process(block.viewOf(0, count));
+
+        for (int channel = 0; channel < 2; ++channel)
+            for (int n = 0; n < count; ++n)
+                if (start + n >= checkedFrom)
+                {
+                    const double expected = static_cast<float>(tone(channel, start + n - latency));
+                    const double difference = block.channel(channel)[static_cast<std::size_t>(n)] - expected;
+                    error[static_cast<std::size_t>(channel)] += difference * difference;
+                    reference[static_cast<std::size_t>(channel)] += expected * expected;
+                }
+        start += count;
+    }
+
+    for (std::size_t channel = 0; channel < 2; ++channel)
+    {
+        INFO(render.sampleRate << " Hz, " << render.seconds << " s, channel " << channel);
+        CHECK(10.0 * std::log10(error[channel] / reference[channel]) < -90.0);
     }
 }
 
